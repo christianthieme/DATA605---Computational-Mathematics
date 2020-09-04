@@ -1,0 +1,132 @@
+---
+title: "DATA605-Week2 - Trace, Determinants,and Inverse"
+author: "Christian Thieme"
+date: "9/3/2020"
+output: html_document
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Problem Set 1
+
+#### Question 1:
+
+![](C:/Users/chris/OneDrive/Master Of Data Science - CUNY/Fall 2020/DATA605-Computational Mathematics/Week 2 - Trace, Determinants, and Inverses/question1.jpg)
+
+
+Proof: 
+
+The rules of linear algebra state that multiplication of matrices is NOT commutative. The full proof comes from the fact that Matrices are members of the non-commutative ring theory with respect to multiplication - which is beyond the scope of this course. However, at its core, for all matrices besides two by twos, when you transpose them, it changes the number of rows and columns they have, and depending on which matrix you choose to have first in your multiplication, it will determine how many rows and columns your resulting matrix has. Take for example matrix A which is a 2x3 matrix. When we take it's transpose, it will be a 3x2 matrix, ${ A }^{ T }$. Because the number of columns from matrix A is the same as the number of rows in ${ A }^{ T }$, this multiplication is allowed. We can also tell from these values that the resulting matrix will be a 2x2 matrix since matrix A has two rows and ${ A }^{ T }$ has 2 columns. If we were to reverse this and multiply ${ A }^{ T }$ by A we would multiply a 3x2 by a 2x3. Looking at their row and column structure, we can tell that the resulting matrix would be a 3x3 matrix NOT a 2x2. Now, this proof is obvious when you aren't working with a square matrix, but does this non-commutative theory hold up with a square matrix? Yes, it does. Matrix multiplication is non-commutative except in extremely rare situations which will be described in the next question. Below is an example demonstrating multiplication of a 2x2 matrix with it's inverse, and showing that ${ A }^{ T }$A$\neq$A${ A }^{ T }$:
+
+![](C:/Users/chris/OneDrive/Master Of Data Science - CUNY/Fall 2020/DATA605-Computational Mathematics/Week 2 - Trace, Determinants, and Inverses/answer1.jpg)
+
+#### Question 2:
+
+
+
+![](C:/Users/chris/OneDrive/Master Of Data Science - CUNY/Fall 2020/DATA605-Computational Mathematics/Week 2 - Trace, Determinants, and Inverses/question2.jpg)
+
+
+Two matrices can be commutative under multiplication if they are simultaneously diagonalizable, such as the identity matrix. 
+
+
+## Problem Set 2
+
+![](C:/Users/chris/OneDrive/Master Of Data Science - CUNY/Fall 2020/DATA605-Computational Mathematics/Week 2 - Trace, Determinants, and Inverses/question22.jpg)
+
+The below function `lu_decomposition_function` will decompose a square matrix into is lower and upper matrices. The below function is completely dynamic, with no hard coding, and will work for any square matrix. If a non-sqaure matrix is entered, it will throw and error. 
+
+```{r}
+# LU Decomposition function
+
+lu_decomposition_function <- function(A) {
+  
+if (dim(A)[1] == dim(A)[2]) {
+  
+    B <- A
+  
+    #row <- 1
+    num_rows <- dim(A)[1]
+    num_cols <- dim(A)[2]
+    
+    starter_row <- 2
+    start_row <- 2
+    start_col <- 1
+    
+    L <- diag(dim(A)[1])
+    
+    while (starter_row <= num_rows && start_col < num_cols) {
+    
+      
+      if (start_row <= num_rows) {
+        
+        if (A[start_row, start_col] == 0) {
+          
+            start_row <- start_row + 1 
+            
+        } else {
+          
+          num_under_diag <- A[start_row, start_col]
+          answer <- num_under_diag / A[starter_row-1, start_col] 
+          
+          next_row <- A[start_row,] + (-answer * A[starter_row-1,])
+              
+            A[start_row,] <- next_row
+            
+            L[start_row, start_col] <- answer
+            
+           
+            start_row <- start_row + 1
+      
+        }
+        } else {
+          
+          start_col <- start_col + 1
+          starter_row <- starter_row + 1
+          start_row <- starter_row
+        }
+      
+  
+    }
+    print("-------------------------")
+    print("The original matrix is: ")
+    print(B)
+    print("-------------------------")
+    print("The upper decomposed matrix is: ")
+    print(A)
+    print("-------------------------")
+    print("The lower decomposed matrix is: ")
+    print(L)
+    print("-------------------------")
+  
+} else {
+  
+  print("Not a square matrix, please enter a square matrix where 
+        the number of rows and columns match. ")
+} 
+  
+}
+```
+
+
+Let's run this function on a 3x3 matrix:
+
+```{r}
+A <- matrix(c(2,1,-6,4,-4,-9,-4,3,5), nrow = 3)
+
+lu_decomposition_function(A)
+```
+
+Now, let's run this function on a 4x4 matrix:
+
+```{r}
+A <- matrix(c(1,2,0,0,5,12,4,0,0,5,13,6,0,0,5,11), nrow = 4)
+
+lu_decomposition_function(A)
+```
+
+As you can see the function is able to decompose any square matrix into its upper and lower matrices. 
+
