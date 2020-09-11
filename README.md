@@ -5,3 +5,6 @@ RPubs link to .rmd: https://rpubs.com/christianthieme/653693
 
 ### Week 2:Trace, Determinants,and Inverse
 RPubs link to .rmd: https://rpubs.com/christianthieme/656323
+
+### Week 3: Eigenvalues and Eigenvectors
+RPubs link to .rmd: https://rpubs.com/christianthieme/658971
