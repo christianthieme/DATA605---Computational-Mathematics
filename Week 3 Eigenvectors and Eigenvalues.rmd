@@ -1,0 +1,51 @@
+---
+title: "Week 3 - Eigenvalues and Eigenvectors"
+author: "Christian Thieme"
+date: "9/8/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Problem Set 1:
+
+1. What is the rank of the matrix A?
+
+![](C:/Users/chris/OneDrive/Master Of Data Science - CUNY/Fall 2020/DATA605-Computational Mathematics/Week 3 - Eigenvectors and Eigenvalues/question1.jpg)
+
+To find the rank of matrix A, we need to reduce the matrix into reduced row-echelon form and see how many pivot columns there are. We can get the rank from the pivot variables because every pivot variable is associated with a linearly independent vector in the column space.The number of basis vectors required to span the column space is equal to the number of pivot variables in a matrix. I'll now reduce matrix A using the `echelon` function from the `matlib` library. 
+
+```{r}
+library(matlib)
+A <- matrix(c(1,-1,0,5,2,0,1,4,3,1,-2,-2,4,3,1,-3), nrow = 4)
+matlib::echelon(A)
+```
+
+Now that matrix A has been reduced to row-echelon form, we can count the pivot variables, which will be the counting the 1's along the diagonal. In our case, there are 4 pivot columns, meaning the rank of this matrix is 4.
+
+2. Given an mxn matrix where m > n, what can be the maximum rank? The minimum rank, assuming that the matrix is non-zero?
+
+Given the information that the rows are greater than the columns, our maximum rank can only be less than or equal to n - the number of columns (rank <= n). This calculation is telling us the number of linearly independent column (or row) vectors in the matrix. Had the question not said that m > n, than rank would have to be less than or equal the min(m,n). This is because you can't have more than min(m,n) row/column vectors to span the space - for example if you have a 3 x 5 matrix, your max rank would be 3, meaning that two of the column vectors would not be linearly independent. Assuming that a matrix is non-zero, the minimum rank of a matrix would be 1. This is because if you even have one non-zero value, you are creating single vector that would be linearly independent within the matrix. 
+
+
+
+3. What is the rank of matrix B? 
+
+![](C:/Users/chris/OneDrive/Master Of Data Science - CUNY/Fall 2020/DATA605-Computational Mathematics/Week 3 - Eigenvectors and Eigenvalues/question3.jpg)
+
+As we did in question 1, we'll reduce the following matrix to reduced row-echelon form. Once this is complete, we will look at the pivot entries or non-zero rows to determine the rank. This will tell us how many linearly independent rows are in the matrix. 
+
+```{r}
+B <- matrix(c(1,3,2,2,6,4,1,3,2), nrow = 3)
+matlib::echelon(A)
+```
+
+Based on the reduced matrix above, the rank is 1 for matrix B. 
+
+## Problem Set 2:
+
+![](C:/Users/chris/OneDrive/Master Of Data Science - CUNY/Fall 2020/DATA605-Computational Mathematics/Week 3 - Eigenvectors and Eigenvalues/problemset2question1.jpg)
+
+![](C:/Users/chris/OneDrive/Master Of Data Science - CUNY/Fall 2020/DATA605-Computational Mathematics/Week 3 - Eigenvectors and Eigenvalues/problemset2answer1.jpg)
