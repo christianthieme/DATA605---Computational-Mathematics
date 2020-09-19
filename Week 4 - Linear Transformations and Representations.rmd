@@ -1,0 +1,217 @@
+---
+title: "Week 4 - Linear Transformations & Representations"
+author: "Christian Thieme"
+date: "9/17/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Problem Set 1:
+
+![](C:/Users/chris/OneDrive/Master Of Data Science - CUNY/Fall 2020/DATA605-Computational Mathematics/Week 4 - Linear Transformations and Representations/problem1question.jpg)
+
+```{r}
+A <- matrix(c(1,-1,2,0,3,4), nrow = 2)
+
+# A is a 2 x 3
+# Transpose will be a 3 x 2
+#--------------------------------------------
+X <- A %*% t(A)  ## A * Transpose(A)
+
+#calculating the eigenvalues of X
+x_eigen_values <- eigen(X)$values
+
+#Calculating the eigenvectors of X
+x_eigen_vectors <- eigen(X)$vectors
+
+#---------------------------------------------
+Y <-  t(A) %*% A ## Transpose(A) * A
+
+#calculating the eigenvalues of Y
+y_eigen_values <- eigen(Y)$values
+
+#Calculating the eigenvectors of Y
+y_eigen_vectors <- eigen(Y)$vectors
+
+#---------------------------------------------
+
+## SVD of A
+svd_A <- svd(A)
+
+left_singular_vectors <- svd_A$u #This will be the equivalent of A * A^T's eigenvectors
+
+right_singular_vectors <- svd_A$v #This will be the equivalent of A^T * A's eigenvectors (only the columns that have a non-zero singular value)
+
+singular_values <- svd_A$d # This is the equivalent of the square roots of the eigenvalues of A^T * A and A * A^T
+
+```
+
+Now we will examine if the two sets of singular matrices are the eigenvectors of X and Y. First, let's investigate the eigenvectors of X.
+
+```{r}
+x_eigen_vectors
+```
+
+Next, we'll look at the left singular values of A: 
+
+```{r}
+left_singular_vectors
+```
+
+You'll notice that the eigenvectors from X and the left singular vectors are the same, but with some sign changes. [This Stackoverflow](https://stackoverflow.com/questions/17998228/sign-of-eigenvectors-change-depending-on-specification-of-the-symmetric-argument) explains in detail why that can happen, but in summary these sign changes can happen due to random changes in the signs of the eigen vecotrs from using the eigen() function, since the eigenvectors can be scaled by -1.
+
+Now let's look at the eigenvectors of Y: 
+```{r}
+y_eigen_vectors
+```
+
+Next, we'll look at the right singular values of A: 
+
+```{r}
+right_singular_vectors
+```
+
+First, you'll notice that the first two vectors are both the same, but with some sign changes as discussed above. However, there is also a third vector when looking at Y's eigenvectors. This is jumping ahead a little bit, but there are only two non-zero singular values which relate to the first to vectors, so we ignore the third vector. I'll remove that vector and you'll see that it is identical (except for sign changes) to the right singular vectors. 
+
+```{r}
+y_eigen_vectors[,1:2]
+```
+
+Finally, let's take a look at the singular values of A. If we've done this right, the singular values of A should be the square roots of the eigenvalues of X and Y, so if we square the singular values, they should be equivalent to the eigenvalues. The singular values of A are: 
+
+```{r}
+singular_values
+```
+
+The eigenvalues are (both X and Y will have the same non-zero eigenvalues): 
+
+```{r}
+x_eigen_values
+```
+
+Now lets see if we get these numbers when we square the singular values of A: 
+
+```{r}
+singular_values ** 2
+```
+
+Its a perfect match!
+
+## Problem Set 2:
+
+![](C:/Users/chris/OneDrive/Master Of Data Science - CUNY/Fall 2020/DATA605-Computational Mathematics/Week 4 - Linear Transformations and Representations/problem2question.jpg)
+
+The below function `myinverse` will calculate the inverse for any size of square matrix that is passed to it. 
+
+```{r}
+myinverse <- function(A) {
+  if (dim(A)[1] != dim(A)[2] | det(A) == 0 ) {
+    print("Please enter a sqaure matrix that is invertible.")
+  } else {
+      
+    list_for_matrix = c()
+    determinant_list = c()
+    indexes <- seq(from = 1, to = dim(A)[1])
+    
+    inverse_matrix_row_counter <- 1
+    inverse_matrix_col_counter <- 1
+    
+    cur_row <- 1
+    cur_column <- 1
+    
+    moving_row <- 1
+    moving_col <- 1
+    
+    while (cur_column <= dim(A)[1]) {
+    
+      if (cur_row <= dim(A)[1]) {
+    
+          for (num in A) {
+            
+            if (moving_row == cur_row | moving_col == cur_column) {
+               if ( moving_row < dim(A)[1] ) {
+                    moving_row <- moving_row + 1
+                } else { 
+                      moving_row <- 1
+                      if (moving_col < dim(A)[1]) {
+                        moving_col <- moving_col + 1
+                        } 
+                 }
+            } else {
+                 number <- A[moving_row, moving_col]
+                 list_for_matrix <- c(list_for_matrix, number)
+                if ( moving_row < dim(A)[1] ) {
+                    moving_row <- moving_row + 1 
+                  } else { 
+                        moving_row <- 1
+                        if (moving_col < dim(A)[1]) {
+                            moving_col <- moving_col + 1
+                         }
+                    }
+            }
+          }
+           new_matrix <- matrix(list_for_matrix, nrow = (dim(A)[1])-1)
+           list_for_matrix <- c()
+           moving_row <- 1
+           moving_col <- 1
+           determinant <- det(new_matrix)
+           if ((inverse_matrix_row_counter + inverse_matrix_col_counter)%%2 == 0){
+              determinant_list <- c(determinant_list, determinant)
+           } else {
+              determinant_list <- c(determinant_list, -1 * determinant)  
+           }
+           if (inverse_matrix_row_counter < dim(A)[1]) {
+             inverse_matrix_row_counter <- inverse_matrix_row_counter + 1
+           } else {
+             inverse_matrix_row_counter <- 1
+             inverse_matrix_col_counter <- inverse_matrix_col_counter + 1
+           }
+           cur_row <- cur_row + 1
+      } else {
+        cur_row <- 1
+        cur_column <- cur_column + 1
+      }
+    }
+    
+    cofactor_matrix <- matrix(determinant_list, nrow = dim(A)[1])
+    transposed_cofactor_matrix <- t(cofactor_matrix)
+    determinant_of_a <- det(A)
+    
+    (1/determinant_of_a) * transposed_cofactor_matrix
+  }
+}
+
+```
+
+Now let's give our function a run on a 3x3 matrix to see if we can correctly calculate the inverse as well as get all the signs right as well. 
+
+```{r}
+A <- matrix(c(-1,2,3,-2,1,4,2,1,5), nrow = 3)
+B <- myinverse(A)
+B
+```
+
+To see if we've calculated the inverse correctly, we can multiply A * B and we should get the identity matrix: 
+
+```{r}
+round(A %*% B,0)
+```
+
+VOILA! Perfect. Now let's try our hand on 4x4 matrix:
+
+```{r}
+AA <- matrix(c(4,0,0,1,0,0,1,0,0,2,2,0,0,0,0,1), nrow = 4)
+BB <- myinverse(AA)
+BB
+```
+
+Again, to see if we've calculated the inverse correctly, if we multiply AA * BB, we should get the identify matrix as well. 
+
+```{r}
+round(AA %*% BB, 0)
+```
+
+Our function is working perfectly!
