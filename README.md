@@ -8,3 +8,6 @@ RPubs link to .rmd: https://rpubs.com/christianthieme/656323
 
 ### Week 3: Eigenvalues and Eigenvectors
 RPubs link to .rmd: https://rpubs.com/christianthieme/658971
+
+### Week 4: Singular Value Decomposition and Matrix Inverses
+RPubs link to .rmd: https://rpubs.com/christianthieme/662923
