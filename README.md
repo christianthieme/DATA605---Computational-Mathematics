@@ -11,3 +11,6 @@ RPubs link to .rmd: https://rpubs.com/christianthieme/658971
 
 ### Week 4: Singular Value Decomposition and Matrix Inverses
 RPubs link to .rmd: https://rpubs.com/christianthieme/662923
+
+### Week 5: Probability Distributions
+Rpubs link to .rmd: https://rpubs.com/christianthieme/666245
