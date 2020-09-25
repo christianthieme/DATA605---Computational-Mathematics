@@ -1,0 +1,135 @@
+---
+title: "DATA605 - Week 5"
+author: "Christian Thieme"
+date: "9/24/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# **Probability Distributions**
+
+### Choose independently two numbers B and C at random from the interval [0, 1] with uniform density. Prove that B and C are proper probability distributions. Note that the point (B,C) is then chosen at random in the unit square.
+
+We will use the `runif` function in R to pick two numbers from the interval [0,1] with uniform density. In looking at B, we can see that this is a proper probability distribution as we pulled 100,000 different probabilities and 100% of them fall within the interval [0,1]. Additionally, we can see that this is a uniform distribution. 
+
+
+```{r}
+B <- runif(100000)
+hist(B)
+```
+
+The same is true of C: 
+
+```{r}
+C <- runif(100000)
+hist(C)
+```
+
+As both values fall within the interval [0,1], the combined interval with fall between [0,2] 100% of the time. 
+
+<br>
+
+We will use a simlulation to solve the questions below. Given that we have 100K probabilities for both B and C, the law of large numbers should help us get incredibly close to the probabliity we would have calculated manually. 
+
+### (a) Find the probability that B + C < 1/2
+
+```{r}
+counter <- 0
+
+for (i in seq(length(B))) {
+  if (B[i] + C[i] < 0.5) {
+    counter <- counter + 1
+  } else {
+    next()
+  }
+}
+
+prob1 <- counter / length(B)
+
+```
+
+#### The probability that B + C < 1/2 is approximately: `r prob1`. 
+
+<br>
+
+### (b) Find the probability that BC < 1/2
+
+```{r}
+counter <- 0
+
+for (i in seq(length(B))) {
+  if (B[i] * C[i] < 0.5) {
+    counter <- counter + 1
+  } else {
+    next()
+  }
+}
+
+prob2 <- counter / length(B)
+
+```
+
+#### The probability that BC < 1/2 is approximately: `r prob2`. 
+
+<br>
+
+### (c) Find the probability that |B - C| < 1/2
+
+```{r}
+counter <- 0
+
+for (i in seq(length(B))) {
+  if (abs(B[i] - C[i]) < 0.5) {
+    counter <- counter + 1
+  } else {
+    next()
+  }
+}
+
+prob3 <- counter / length(B)
+```
+
+#### The probability that |B - C| < 1/2 is approximately: `r prob3`. 
+
+<br>
+
+### (d) Find the probability that max{B,C} < 1/2
+
+```{r}
+counter <- 0
+
+for (i in seq(length(B))) {
+  if (max(B[i], C[i]) < 0.5) {
+    counter <- counter + 1
+  } else {
+    next()
+  }
+}
+
+prob4 <- counter / length(B)
+```
+
+#### The probability that max{B,C} < 1/2 is approximately: `r prob4`. 
+
+<br>
+
+### (e) Find the probability that min{B,C} < 1/2
+
+```{r}
+counter <- 0
+
+for (i in seq(length(B))) {
+  if (min(B[i], C[i]) < 0.5) {
+    counter <- counter + 1
+  } else {
+    next()
+  }
+}
+
+prob5 <- counter / length(B)
+```
+
+#### The probability that min{B,C} < 1/2 is approximately: `r prob5`. 
