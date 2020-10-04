@@ -13,4 +13,7 @@ RPubs link to .rmd: https://rpubs.com/christianthieme/658971
 RPubs link to .rmd: https://rpubs.com/christianthieme/662923
 
 ### Week 5: Probability Distributions
-Rpubs link to .rmd: https://rpubs.com/christianthieme/666245
+RPubs link to .rmd: https://rpubs.com/christianthieme/666245
+
+### Week 6: Combinatronics, Bayes' Theorem, and Conditional Probability
+RPubs link to .rmd: https://rpubs.com/christianthieme/670172
