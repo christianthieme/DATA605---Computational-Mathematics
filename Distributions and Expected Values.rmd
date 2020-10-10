@@ -1,0 +1,208 @@
+---
+title: "Distributions, Expected Value, and Standard Deviation"
+author: "Christian Thieme"
+date: "10/8/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### 1. Let X1, X2, . . . , Xn be n mutually independent random variables, each of which is uniformly distributed on the integers from 1 to k. Let Y denote the minimum of the Xi’s. Find the distribution of Y 
+
+*I had a difficult time with this problem. During my research online I came accross [this explanation](https://math.dartmouth.edu/archive/m20f10/public_html/HW5Solutions.pdf) of the problem that helped me understand a bit more about what is being asked and how to think about these questions. I am heavily utilizing this resource in my response below and leveraging this as a learning opportunity as I walk through the solution:*
+
+The easier part of this problem is starting with the denominator. Essentially, we need to determine all the possible ways we can assign $X1,X2,...Xn$ to values between j and k. If X has k possibilities, then the total possibilities are equal to ${ k }^{ n }$.
+
+Next, for the numerator. Our goal is to determine the number of ways we can assign $X1,X2,...Xn$ to values between j and k with at least one ${ X }_{ i }$ being assigned to j. To get the number of ways where Y = 1, ${ k }^{ n }$ as described above, represents the total number of options. The complement then is ${ (k-1) }^{ n }$, which represents where none of the ${ X }_{ i }$s are equal to 1. Therefore, combining these we get ${ k }^{ n }-(k-1{ ) }^{ n }$. Now if Y = 2, there would be ${ k }^{ n }−(k−2{ ) }^{ n }−[{ k }^{ n }−(k−1)^{ n }]$ different options. We can simply this to $(k−1{ ) }^{ n }−(k−2{ ) }^{ n }$. 
+
+Building off of this, if Y = j, then there are $(k-j+1{ ) }^{ n }-(k-j{ ) }^{ n }$ ways to assign $X1,...Xn$ so that the minimum value is j. 
+
+Finally, we can put both the numerator and denominator together to get the distribution function: 
+
+$For\quad1\le j\le k,\quad m(j)=\frac { (k-j+1{ ) }^{ n }-(k-j{ ) }^{ n } }{ { k }^{ n } }$
+
+ 
+### 2. Your organization owns a copier (future lawyers, etc.) or MRI (future doctors). This machine has a manufacturer’s expected lifetime of 10 years. This means that we expect one failure every ten years. (Include the probability statements and R Code for each part.).
+
+**a. What is the probability that the machine will fail after 8 years?. Provide also the expected value and standard deviation. Model as a geometric. (Hint: the probability is equivalent to not failing during the first 8 years..)**
+
+We can use the following formula to model this as a geometric distribution: 
+
+$P(success\quad in\quad x\quad trials)={ P(1-P) }^{ n-1 }$
+
+In this problem because we are looking for the probability after 8 years, which could ultimately go on to infinity, we need to take the probability of failure at 1 year through 8 years, add those all up, and subtract from 1 to get the correct answer. I'll do this manually first, and then use the r function `pgeom`. 
+
+```{r}
+
+p_failure <- 1/10
+p_no_failure <- 1 - p_failure
+
+
+one <- p_failure
+two <- p_failure*(p_no_failure**(1))
+three <- p_failure*(p_no_failure**(2))
+four <- p_failure*(p_no_failure**(3))
+five <- p_failure*(p_no_failure**(4))
+six <- p_failure*(p_no_failure**(5))
+seven <- p_failure*(p_no_failure**(6))
+eight <- p_failure*(p_no_failure**(7))
+
+
+1 - (one + two + three + four + five + six + seven + eight)
+```
+
+Now using R to calculate the probability: 
+
+```{r}
+pgeom(7, prob = 1/10, lower.tail =  FALSE)
+```
+
+Expected value:
+
+```{r}
+1/p_failure
+```
+
+Standard deviation:
+
+```{r}
+variance <- (1 - p_failure) / p_failure ** 2
+sqrt(variance)
+```
+
+**b. What is the probability that the machine will fail after 8 years? Provide also the expected value and standard deviation. Model as an exponential.**
+
+To model using an exponential function, we'll use the following formula: 
+
+$P(x>=k)={ e }\frac { -k }{ m }$
+
+In our case because 1/10 is a rate, we'll need to calculate the mean using lamda: 
+
+$\mu =\frac { 1 }{ \lambda  }$
+
+```{r}
+lamda <- 1/10 #rate
+m <- 1/lamda #mean and also expected value
+k <- 8 #
+
+exp(-k/m)
+```
+
+Similarly, we can use the `pexp` function in R to calculate this as well: 
+
+```{r}
+pexp(8,.10, lower.tail = FALSE)
+```
+
+The mean and expected value are the same, as we calculated above: 
+```{r}
+m
+```
+
+The variance can be attained with the following formula: 
+
+${ \sigma  }^{ 2 }=\frac { 1 }{ { \lambda  }^{ 2 } }$
+
+You can see from above that if we were to take the square root of the variance, that we would just get the mean or expected value again. So the standard deviation is again 10. 
+
+```{r}
+sqrt(1/lamda**2)
+```
+
+**c. What is the probability that the machine will fail after 8 years? Provide also the expected value and standard deviation. Model as a binomial. (Hint: 0 success in 8 years)**
+
+
+We can solve this problem using the binomial distribution with the following formula: 
+
+$P(k\quad successes\quad in\quad N\quad attempts)=(\begin{matrix} n \\ k \end{matrix}){ p }^{ k }(1-p{ ) }^{ n-k }$
+
+The $(\begin{matrix} n \\ k \end{matrix})$ section of this formula tells us we need to use the combination formula: 
+
+$\frac { n! }{ k!(n-k)! }$
+
+We'll first start by finding the total combinations that make up 0 successes in 8 trials (years). Here we know that there should only be one combination that comes up with 0 successes in 8 years. 
+
+```{r}
+n <- 8
+k <- 0
+
+binom_calc <- factorial(8) / (factorial(0) * factorial(8-0))
+binom_calc
+```
+
+Just as we suspected, we get the value 1. 
+
+Now that we have the binomial coefficient, we can move forward with the probability calculation:
+
+```{r}
+p <- 1/10
+f <- 1-p
+
+binom_calc * p**k * (f) ** (n-k)
+
+```
+
+Having done it manually, let's now do it using R's `pbinom` function: 
+
+```{r}
+pbinom(0,8,0.1, lower.tail = TRUE)
+```
+
+Our two values match!
+
+Now lets find the expected value. For a binomial distribution, the expected value can be found using the following formula: 
+
+$E(x)=pn$
+
+Using p and n from our calculations, the expected value is: 
+
+```{r}
+p * n
+```
+
+The standard deviation can be found by taking the square root of the variance. The variance can be calculated as: 
+
+${ \sigma  }^{ 2 }=np(1-p)$
+
+```{r}
+sqrt(p * n * (f))
+```
+
+**d. What is the probability that the machine will fail after 8 years?. Provide also the expected value and standard deviation. Model as a Poisson.**
+
+We can solve this problem using the poisson distribution with the following formula: 
+
+$P(x)=\frac { { \lambda  }^{ k }{ e }^{ -\lambda  } }{ k! }$
+
+To find lamda, we'll need two things: the rate of success and the time period for that rate. In our case, the rate of success is 1/10 per year. In this instance, we are looking for the rate of success to be 0 over a period of 8 years. We'll need to take our rate 1/10 and multiply it by t = time, which is 8. Using this information, we can now find the probability:
+
+```{r}
+rate_of_success <- 1/10
+time <- 8
+lamda <- rate_of_success * time
+successes_we_want <- 0
+
+(exp(-lamda ) * (lamda)**successes_we_want)/factorial(successes_we_want)
+
+```
+
+Again, here I'll demonstrate how to get the same answer using R's `ppois` function. 
+
+```{r}
+ppois(0,lamda)
+```
+
+We match again!
+
+The expected value in a poisson distribution is equivalent to $\lambda$ and ${ \sigma  }^{ 2 }$
+```{r}
+lamda
+```
+
+The standard deviation is just the square root of the variance, which is equivalent to $\lambda$ and the expected value. 
+```{r}
+sqrt(lamda)
+```
+
