@@ -17,3 +17,6 @@ RPubs link to .rmd: https://rpubs.com/christianthieme/666245
 
 ### Week 6: Combinatronics, Bayes' Theorem, and Conditional Probability
 RPubs link to .rmd: https://rpubs.com/christianthieme/670172
+
+### Week 7: Distributions, Expected Value, and Standard Deviation
+RPubs link to .rmd: https://rpubs.com/christianthieme/673268
