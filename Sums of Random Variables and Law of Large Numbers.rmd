@@ -1,0 +1,101 @@
+---
+title: "Sum of Random Variables and Law of Large Numbers"
+author: "Christian Thieme"
+date: "10/14/2020"
+output:
+  prettydoc::html_pretty:
+    theme: cayman
+    highlight: github
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 7.11 A company buys 100 lightbulbs, each of which has an exponential lifetime of 1000 hours. What is the expected time for the first of these bulbs to burn out? (See Exercise 10)
+
+In exercise 7.10 we learn, the density for M is exponential with mean μ/n. This means that the expected value is: 
+
+$E(x)=\frac { 1 }{ \lambda  } =1000$
+
+So to get $\lambda$ we need to take $\frac { 1 }{ E(x) }$, which gives us $\frac { 1 }{ 1000 }$. 
+
+Now $n\lambda =100*\frac { 1 }{ 1000 } =\frac { 1 }{ 10 }$. Using the exponential distribution, considering we are taking the minimum we get: 
+
+$P(min\quad X1,X2,...,Xn<=x)=1−{ e }^{ -\frac { 1 }{ 10 } x }$
+
+Finally, we'll pull this all together: $E(min\quad { X }_{ i })=\frac { 1 }{ \frac { 1 }{ 10 }  } =10\quad hours$
+
+
+## 7.14
+
+![](C:/Users/chris/OneDrive\Master Of Data Science - CUNY\Fall 2020\DATA605-Computational Mathematics\Week 8 - Sums of Random Variables, Law of Large Numbers/q14.jpg)
+
+
+We can use the following convolution formula for the sum of $W=X+Y$ to solve this problem: 
+
+$\int _{ -\infty  }^{ \infty  }{ { f }_{ X }(x){ f }_{ Y } } (z-x)dx$
+
+In the formula above, you can see that we have a positive $Y$, since our question involves subtraction, we'll need to adjust this formula to read as $W=X+(-Y)$, which will then make the above formula look like this: 
+
+$\int _{ -\infty  }^{ \infty  }{ { f }_{ X }(x){ f }_{ -Y } } (x-z)dx$
+
+Now, we'll use the distribution of an exponential random variable, with parameter $\lambda$, leveraging our convolution formula. 
+
+Where $z<0=\int _{ 0 }^{ \infty  }{ { \lambda e }^{ -\lambda e }{ \lambda e }^{ -\lambda (x-z) }dx }$
+
+Now we'll simplify: 
+
+${ \lambda e }^{ \lambda z }\int _{ 0 }^{ \infty  }{ { \lambda e }^{ -2\lambda x }dx }$
+
+${ \lambda e }^{ \lambda z }(-\frac { 1 }{ 2 } { e }^{ -2\lambda x }\int _{ 0 }^{ \infty  }{ )=\frac { \lambda  }{ 2 } { e }^{ \lambda z } }$
+
+Now that we have the distribution when $z\le0$, we'd like to see what happens when $z>0$.We could go through the same procedure or we could understand that because $x$ and $Y$ and independent and have the same distribution, therefore $X - Y$ has the same distribution as $Y - X$. This tells us the distribution must be symmetric around 0. This information allows us understand that ${ f }_{ Z }(z)={ f }_{ Z }(-z)$. Knowing this we can write: 
+
+![](C:/Users/chris/OneDrive\Master Of Data Science - CUNY\Fall 2020\DATA605-Computational Mathematics\Week 8 - Sums of Random Variables, Law of Large Numbers/a14.jpg)
+
+This can then be re-written as: 
+
+$f(z)=\frac { \lambda  }{ 2 } { e }^{ -\lambda |z| }$
+
+## 8.1  Let X be a continuous random variable with mean μ = 10 and variance ${ \sigma  }^{ 2 }$ = 100/3. Using Chebyshev’s Inequality, find an upper bound for the following probabilities:
+
+(a) $P(|X-10|\ge 2)$
+(b) $P(|X-10|\ge 5)$
+(c) $P(|X-10|\ge 9)$
+(d) $P(|X-10|\ge 20)$
+
+We can solve these with Chebyshev's Inequality: 
+
+$P(|X-\mu |\le \epsilon )\le \frac { 1 }{ { \epsilon  }^{ 2 } }$
+
+Since we were given $\mu$ and ${ \sigma  }^{ 2 }$, the answers to these questions are simply a matter of plugging values into the formula: 
+
+(a) $P(|X-10|\ge 2)$
+
+In this question $\epsilon$ = 2:
+
+$P(|X-10|\ge 2)\le \frac { \frac { 100 }{ 3 }  }{ { 2 }^{ 2 } } =\frac { 33.333 }{ 4 } =8.3333$
+
+(b) $P(|X-10|\ge 5)$
+
+In this question $\epsilon$ = 5:
+
+$P(|X-10|\ge 2)\le \frac { \frac { 100 }{ 3 }  }{ { 5 }^{ 2 } } =\frac { 33.333 }{ 25 } =1.33332$
+
+(c) $P(|X-10|\ge 9)$
+
+In this question $\epsilon$ = 9:
+
+$P(|X-10|\ge 2)\le \frac { \frac { 100 }{ 3 }  }{ { 9 }^{ 2 } } =\frac { 33.333 }{ 81 } =0.4115$
+
+(d) $P(|X-10|\ge 20)$
+
+In this question $\epsilon$ = 20:
+
+$P(|X-10|\ge 2)\le \frac { \frac { 100 }{ 3 }  }{ { 20 }^{ 2 } } =\frac { 33.333 }{ 400 } =0.0833$
+
+
+
+
+
