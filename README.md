@@ -20,3 +20,6 @@ RPubs link to .rmd: https://rpubs.com/christianthieme/670172
 
 ### Week 7: Distributions, Expected Value, and Standard Deviation
 RPubs link to .rmd: https://rpubs.com/christianthieme/673268
+
+### Week 8: Sums of Random Variables and Law of Large Numbers
+RPubs link to .rmd: https://rpubs.com/christianthieme/676726
