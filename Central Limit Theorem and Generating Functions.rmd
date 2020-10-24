@@ -1,0 +1,95 @@
+---
+title: "Week 9 - Central Limit Theorem & Generating Functions"
+author: "Christian Thieme"
+date: "10/21/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 1.The price of one share of stock in the Pilsdorff Beer Company (see Exercise 8.2.12) is given by ${ Y }_{ n }$ on the *n*th day of the year. Finn observes that the differences ${ X }_{ n }={ Y }_{ n }+1-{ Y}_{ n }$ appear to be independent random variables with a common distribution having mean $\mu =0$ and variance ${ \sigma  }^{ 2 }$=1/4. If ${ Y }_{ 1 }=100$, estimate the probability that ${ Y }_{ 365 }$ is: 
+
+* ## a) $\ge 100$
+
+We can solve all three of these using the `pnorm` function from R. The `pnorm` is the function that calculates the c.d.f. 
+
+```{r}
+variance <- 365*(1/4)
+standard_dev <- sqrt(variance)
+Y1 <- 100
+
+pnorm(Y1 - 100, mean = 0, sd = standard_dev, lower.tail = FALSE)
+```
+
+
+* ## b) $\ge 110$
+
+```{r}
+variance <- 365*(1/4)
+standard_dev <- sqrt(variance)
+Y1 <- 110
+
+pnorm(Y1-100, mean = 0, sd = standard_dev, lower.tail = FALSE)
+```
+
+* ## c) $\ge 120$
+
+```{r}
+variance <- 365*(1/4)
+standard_dev <- sqrt(variance)
+Y1 <- 120
+
+pnorm(Y1-100, mean = 0, sd = standard_dev, lower.tail = FALSE)
+```
+
+## 2. Calculate the expected value and variance of the binomial distribution using the moment generating function.
+
+To solve, we'll let p be the probability of success and 1-p be the probability of failure for the binomial distribution: 
+
+$p({ X }_{ j })=(\frac { n }{ j } ){ p }^{ j }(1-p{ ) }^{ n-j }\quad$
+
+The moment generating function is: 
+
+$g(t)=E({ e }^{ tX) }\quad =\quad \sum _{ j=1 }^{ \infty  }{ { e }^{ t{ x }_{ j } }p({ x }_{ j }) }$
+
+so together we get: 
+
+$g(t)=\sum _{ j=0 }^{ n }{ { e }^{ tj } } (\frac { n }{ j } ){ p }^{ j }{ q }^{ n-j }\quad =\quad \sum _{ j=0 }^{ n }{ (\frac { n }{ j } ) } (p{ e }^{ t }{ ) }^{ j }{ q }^{ n-j }\quad =\quad (p{ e }^{ t }+q{ ) }^{ n }$
+
+The expected value is: 
+
+$g'(0)=n(p{ e }^{ t }+q{ ) }^{ n-1 }p{ e }^{ t }\quad =\quad np\quad (t=0)$
+
+The variance is:
+
+$g''(0)=n(n-1{ ) }p^{ 2 }+np\quad =\quad np(1-p)$
+
+
+## 3. Calculate the expected value and variance of the exponential distribution using the moment generating function.
+
+$g(t)=\int _{ 0 }^{ \infty  }{ { e }^{ tx } } \lambda { e }^{ -\lambda e }dx$
+
+$g(t)=\frac { \lambda { e }^{ (t-\lambda )z } }{ t-\lambda  } |\frac { \infty  }{ 0 }$
+
+$g(t)=\frac { \lambda  }{ { \lambda  }-t }$
+
+$g(t)=\frac { \lambda  }{ { { (\lambda  }-t })^{ 2 } }$
+
+$g(t)=\frac { \lambda  }{ { \lambda  }^{ 2 } } =\frac { 1 }{ \lambda  }$
+
+$g''(t)=\frac { 2\lambda  }{ ({ \lambda -t) }^{ 3 } }$
+
+$g''(0)=\frac { 2\lambda  }{ { \lambda  }^{ 3 } } =\frac { 2 }{ { \lambda  }^{ 2 } }$
+
+Expected Value:
+
+$\mu =g'(0)={ \lambda  }^{ -1 }$
+
+Variance: 
+
+${ \sigma  }^{ 2 }=g''(0)-g'(0{ ) }^{ 2 }=\frac { 2 }{ { \lambda  }^{ 2 } } =\frac { 1 }{ { \lambda  }^{ 2 } } ={ \lambda  }^{ -2 }$
+
+
+
