@@ -23,3 +23,6 @@ RPubs link to .rmd: https://rpubs.com/christianthieme/673268
 
 ### Week 8: Sums of Random Variables and Law of Large Numbers
 RPubs link to .rmd: https://rpubs.com/christianthieme/676726
+
+### Week 9: Central Limit Theorem and Generating Functions
+RPubs link to .rmd: https://rpubs.com/christianthieme/680629
