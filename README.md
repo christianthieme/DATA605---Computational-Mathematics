@@ -26,3 +26,6 @@ RPubs link to .rmd: https://rpubs.com/christianthieme/676726
 
 ### Week 9: Central Limit Theorem and Generating Functions
 RPubs link to .rmd: https://rpubs.com/christianthieme/680629
+
+### Week 10: Markov Chains and Random Walks
+RPubs link to .rmd: https://rpubs.com/christianthieme/683971
