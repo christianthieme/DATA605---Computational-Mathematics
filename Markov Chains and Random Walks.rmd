@@ -1,0 +1,122 @@
+---
+title: "Markov Chains and Random Walks - HW9"
+author: "Christian Thieme"
+date: "10/27/2020"
+output:
+  prettydoc::html_pretty:
+    theme: hpstr
+    highlight: github
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Q1 - Smith is in jail and has 1 dollar; he can get out on bail if he has 8 dollars. A guard agrees to make a series of bets with him. If Smith bets 'A' dollars, he wins 'A' dollars with probability .4 and loses 'A' dollars with probability .6. Find the probability that he wins 8 dollars before losing all of his money if:
+
+* **A) He bets 1 dollar each time (timid strategy).**
+
+
+```{r}
+set.seed(123)
+
+win <- 0
+trials <- 100000
+
+
+for (i in seq(1, trials)) {
+  #we'll simulate the game 100,000 times
+  
+  smiths_money <- 1 #how much money smith has. He starts with $1
+  
+  
+  while (smiths_money > 0 & smiths_money < 8) {   
+    #while his money is greater than 0 and less than 8, keep playing the game
+    
+    outcome <-  sample(
+        c(1, -1), #two outcomes, 1 or -1
+        size = 1, #taking a single sample per turn
+        replace = TRUE,
+        prob = c(.4, .6) #.4 is the probability he wins
+      ) 
+    #using our probabilities, we'll take a single sample. 1 is a win, 
+    #-1 is a loss
+    
+    smiths_money = smiths_money + outcome # current $ Smith has
+    
+    if (smiths_money == 8) {  #if he wins, we increment win
+      win <- win + 1
+    }
+ 
+  }
+  
+}
+
+win_probability <- win/trials
+
+```
+
+Smith's probability of winning with the 'timid strategy' is: `r win_probability`. 
+
+<br>
+
+
+* **B) He bets, each time, as much as possible but not more than necessary to bring his fortune up to 8 dollars (bold strategy).**
+
+```{r}
+set.seed(123)
+
+win <- 0
+trials <- 100000
+win_criteria <- 8
+
+
+for (i in seq(1, trials)) {
+  #we'll simulate the game 100,000 times
+  
+  smiths_money <- 1 #how much money smith has. He starts with $1
+  
+  
+  while (smiths_money > 0 & smiths_money < win_criteria) {   
+    #while his money is greater than 0 and less than 8, keep playing the game
+    
+    max_bet <- (win_criteria - smiths_money) #bets as much as possible but not
+    #more than necessary
+    
+    if (smiths_money < max_bet) { 
+        bet <- smiths_money #if money is less than the max bet, then he bets 
+        #all his money
+      } else  {
+        bet <- max_bet #otherwise he only bets what he needs to
+      }
+      
+    outcome <-  sample(
+        c(bet, -bet), #two outcomes using the bet
+        size = 1, #taking a single sample per turn
+        replace = TRUE,
+        prob = c(.4, .6) #.4 is the probability he wins
+      ) 
+    #using our probabilities, we'll take a single sample. 
+    
+    smiths_money = smiths_money + outcome # current $ Smith has
+    
+    } 
+    
+    if (smiths_money == 8) {  #if he wins, we increment win
+      win <- win + 1
+    }
+    
+  }
+  
+
+win_probability_2 <- win/trials
+```
+
+Smith's probability of winning with the 'bold strategy' is: `r win_probability_2`. 
+
+<br>
+
+
+* **C) Which strategy gives Smith the better chance of getting out of jail?**
+
+Smith should use the 'bold strategy' because he's 3x more likely to get out of jail -- even though his chances are incredibly slim anyway. 
