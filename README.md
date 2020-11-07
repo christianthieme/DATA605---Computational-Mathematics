@@ -29,3 +29,6 @@ RPubs link to .rmd: https://rpubs.com/christianthieme/680629
 
 ### Week 10: Markov Chains and Random Walks
 RPubs link to .rmd: https://rpubs.com/christianthieme/683971
+
+### Week 11: Simple Linear Regression Using R
+Rpubs link to .rmd: https://rpubs.com/christianthieme/687460
