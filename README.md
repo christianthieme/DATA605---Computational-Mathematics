@@ -32,8 +32,10 @@ RPubs link to .rmd: https://rpubs.com/christianthieme/683971
 
 ### Week 11: Simple Linear Regression Using R
 Rpubs link to .rmd: https://rpubs.com/christianthieme/687460
+
 Discussion Post: **NBA Player Salary Analysis with Regression**: https://rpubs.com/christianthieme/687844
 
 ### Week 12: Multiple Linear Regression Using R
 Rpubs link to .rmd: https://rpubs.com/christianthieme/690335
+
 Discussion Post: **Part II - NBA Player Salary Analysis with Multiple Regression**: https://rpubs.com/christianthieme/690766
