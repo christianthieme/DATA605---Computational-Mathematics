@@ -1,0 +1,284 @@
+---
+title: "Part II - NBA Player Salary Analysis with Multiple Regression"
+author: "Christian Thieme"
+date: "11/7/2020"
+output:
+  prettydoc::html_pretty:
+    theme: architect
+    highlight: github
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# **Can We Predict an NBA Player's Salary Using His Statistics from the Prior Year?**
+
+![](C:/Users/chris/OneDrive/Master Of Data Science - CUNY/Fall 2020/DATA605-Computational Mathematics/lebron.jpg)
+
+In the previous week's discussion we used a simple linear regression model with one input variable, total points from the previous year (a single independent variable), to try to predict NBA players' salaries. That analysis and discussion can be reviewed [here](https://rpubs.com/christianthieme/687844). As a refresher, our overall goal is to run a regression model to see if we can predict a player's salary for the coming year. For this analysis, we will use multiple factors in our model and perform multi-factor linear regression. 
+
+We'll use the same two datasets that we used previously. One data set includes player statistics and the other dataset will include information about the salary of the players from 2017 to 2018. We'll join these two datasets together to perform our analysis. The player statistics dataset can be downloaded [here](https://www.kaggle.com/drgilermo/nba-players-stats?select=Seasons_Stats.csv) and the NBA Salary dataset can be downloaded [here](https://www.kaggle.com/koki25ando/salary).
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+```
+
+```{r message=FALSE, warning=FALSE}
+nba_stats <- readr::read_csv('C:/Users/chris/OneDrive/Master Of Data Science - CUNY/Fall 2020/DATA605-Computational Mathematics/Week 11 - Linear Regression Using R/Discussion/Seasons_Stats.csv')
+
+nba_salary <- readr::read_csv('C:/Users/chris/OneDrive/Master Of Data Science - CUNY/Fall 2020/DATA605-Computational Mathematics/Week 11 - Linear Regression Using R/Discussion/NBA_season1718_salary.csv')
+```
+
+
+The nba_stats dataset has data from 1955 through 2017. We'll limit this data down to 2016 to conduct our analysis (since we'll be looking to see if we can predict salary in 2017). Additionally, some players have multiple lines per year since they were traded to different teams throughout the year. First, we'll remove the duplicates from the dataset, then we'll circle back and only pull the duplicates and pull the total value for the season from the dataset for each player and append on to our dataset. 
+
+
+```{r}
+nba_stats_2016_raw <- nba_stats %>% 
+  dplyr::filter(`Year` == 2016) %>%
+  dplyr::select(-`X1`, -`USG%`, -`OWS`, -`DWS`, -`WS`, -`WS/48`, -`blanl`, -`blank2`, -`OBPM`, -`DBPM`, -`VORP`, -`PF`)
+
+#removing duplicates
+nba_stats_2016 <- nba_stats_2016_raw[!duplicated(nba_stats_2016_raw$Player), ]
+
+dupes <- nba_stats_2016_raw %>%
+   dplyr::filter(`Tm` == 'TOT')
+  
+nba_stats_2016 <- bind_rows(nba_stats_2016, dupes)
+#nrow(nba_stats_2016)
+head(nba_stats_2016)
+```
+
+Next we'll select the columns we'll need in our nba_salary dataset and aggregate the salary values for the players that transitioned teams mid-year (meanining they have multiple rows of data). Additionally, we'll divide the salary column by a million to make the numbers easier to view when graphing/plotting. 
+
+```{r}
+nba_salary_2017 <- nba_salary %>%
+  dplyr::select(`Player`, `season17_18`) %>%
+  dplyr::group_by(`Player`) %>% 
+  dplyr::summarize(salary_2017_in_millions = sum(`season17_18`)/1000000)
+
+head(nba_salary_2017)
+```
+
+Next, we'll join these two datasets together so we have both points and salary in the same dataset. 
+
+```{r}
+nba_data <- nba_stats_2016 %>% 
+  dplyr::left_join(nba_salary_2017, by = "Player") %>%
+  dplyr::arrange(PTS)
+
+head(nba_data)
+```
+
+Before moving on, let's quickly look and see how many null values we have in each of our columns: 
+
+```{r}
+colSums(is.na(nba_data))
+```
+
+HOLY! That's a lot of nulls. Some of these columns are almost completly empty. Let's remove these, as they will not be helpful to our anlaysis: 
+
+```{r}
+nba_data <- nba_data %>%
+  dplyr::select(-`GS`, -`3PAr`, -`ORB%`, -`DRB%`, -`TRB%`, -`AST%`, -`STL%`, -`BLK%`, -`TOV%`, -`BPM`, -`3P`, -`3PA`, -`3P%`, -`ORB`, -`DRB`, -`STL`, -`BLK`, -`TOV`)
+
+colSums(is.na(nba_data))
+```
+
+Looking above, the null values in our columns look much better, except for the salary column. Let's clean that up in our next step. 
+
+Since our analysis is specifically looking at predicting the salary of those players with stats in 2016, we'll go ahead and remove any rows of the dataset where the salary is null. Additionally, there are cases where a player has very few points and is still paid a salary (they were injured, etc.). For our purposes, we'll consider these as outliers and remove anyone with less than 25 points them from our analysis (there are 82 games in an NBA season, so scoring 25 points should be realistic for most players - even bench sitters). 
+
+```{r}
+nba_data <- nba_data %>%
+  dplyr::filter(!is.na(salary_2017_in_millions)) %>%
+  dplyr::filter(PTS > 25) %>% 
+  dplyr::mutate(Pos = ifelse(Pos == 'PF-C', 'PF', Pos))
+
+nba_data
+```
+
+Now that we've got our data straightened out, let's see if we can identify some relationship between some of the factors in our dataset and a player's salary. 
+
+First, let's take a look at the distribution of salary between different positions in the NBA. Before plotting, lets take a look and see how many players of each position we have in the dataset: 
+
+```{r}
+nba_data %>% dplyr::count(Pos)
+```
+
+Looking at the above counts, it looks like there is a pretty even breakout between each position. Equipped with this information, let's now plot this with the salary information. 
+
+```{r message=FALSE, warning=FALSE}
+ggplot(nba_data) + 
+  aes(x = salary_2017_in_millions, y = reorder(Pos, salary_2017_in_millions, FUN = median)) + 
+  geom_violin() + 
+  geom_boxplot(width = 0.15) +
+  coord_flip()  + 
+  labs(title = "Salary Violin Plots by Position") + 
+  ylab("Position") + 
+  xlab("Salary ($M)") + 
+  theme(
+      plot.title = element_text(hjust = 0.45)
+  )
+```
+
+One of the most interesting things we can see in the above plot is that point guards (PG) have the lowest median salary of any position in the NBA but also have the widest range and the highest salary value in the dataset as well as several other outliers. The centers (C) have the highest median values as well as a wider IQR than any of the other positions.  
+
+Now let's turn our attention to age to see if it plays a factor in salary: 
+
+```{r}
+ggplot(nba_data) + 
+  aes(x = as.factor(Age), y = salary_2017_in_millions ) + 
+  geom_boxplot()  + 
+  labs(title = "Salary Boxplots by Age") + 
+  ylab("Age") + 
+  xlab("Salary ($M)") + 
+  theme(
+      plot.title = element_text(hjust = 0.45)
+  )
+ # geom_jitter()
+```
+
+Looking at the boxplots above, we can see that age is definitely a factor in salary. We can see that, in general, salary increases at age 22 and then decreases after age 31. This makes sense, because players can begin to enter the league at age 19 and teams generally aren't willing to take a big risk on a large salary with an untested rookie. After a few years of solid performance, we'd expect salaries to increase. Additionally, players generally start seeing some decline in their athletic abilities in their early 30's with the demands of the game.  
+
+Next, we'll take a look at the relationship between team (Tm) and salary: 
+
+```{r fig.width=10, fig.height= 6}
+ggplot(nba_data) + 
+  aes(x = reorder(Tm,salary_2017_in_millions, FUN = median) , y = salary_2017_in_millions ) + 
+  geom_boxplot()  + 
+  labs(title = "Salary Boxplots by Team") + 
+  ylab("Team") + 
+  xlab("Salary ($M)") + 
+  theme(
+      plot.title = element_text(hjust = 0.45)
+  )
+```
+
+These results are pretty surprising. You can see there is a huge discrepancy between team's salaries, for example, it looks like eveyr player on the Cleveland Caveliers makes more than every player on the Philidelphia 76ers. It does look like team will play a factor in the salary puzzle. 
+
+Now that we've reviewed all of the categorical data, let's use a pair plot to investigate relationships between the remaining variables: 
+
+```{r fig.height=12, fig.width=12}
+nba_data_numeric <- nba_data %>%
+  dplyr::select(-`Year`, -`Player`, -`Pos`, -`Tm`, -`Age`)
+
+pairs(nba_data_numeric, gap = 0.5, main = "NBA Numerical Data Relationships")
+```
+
+Looking at the above pair plot we can see a couple things: First, salary has a medium to medium loose relationship with minutes played (MP), Player Efficiency Rating (PER), True Shooting Percentage (TS%), Field Goals (FG), Field Goal Attempts (FGA), Field Goal % (FG%), 2 Point Field Goals (2P), 2 Point Field Goal Attempts (2PA), Free Throws (FT), Free Throw Attempts (FTA), Total Rebounds (TRB) and Points (PTS). Another thing we can see is that some of our columns are highly correlated with one another such as Free Throws and Free Throw Attempts. We'll have to watch out for this collinearity when we build our model. 
+
+Let's now turn our attention to model building. We'll start by building a multi-factor regression model and use backward elimination to remove insignificant factors. Based on our analysis, we've got a good idea of what factors will be relevant to the model. Before building, you'll remember in the last discussion we built a model using a single factor. The output from that model is below: 
+
+![](C:/Users/chris/OneDrive/Master Of Data Science - CUNY/Fall 2020/DATA605-Computational Mathematics/prior_model.jpg)
+
+In reviewing the results you can see we had a standard error of $6.283M dollars and an adjusted R-squared value of 0.3718. We'll be looking to improve those metrics with this multi-factor regression model. Since points (PTS) is strongly correlated with 2PA and 2PA%, we'll remove it in this model run. 
+
+```{r}
+nba_data_for_model <- nba_data %>%
+  dplyr::select(-`Year`, -`Player`, -`PTS`)
+
+model1 <- lm(salary_2017_in_millions ~ ., data = nba_data_for_model)
+summary(model1)
+```
+
+Looking at the above model, we've already improved on our simple linear regression model significantly. Using backward eliminations, it looks like total rebounds has the highest p-value, so we'll remove that factor and rerun the model: 
+
+```{r}
+model2 <- update(model1, .~. -TRB)
+summary(model2)
+```
+
+With the removal of total rebounds we've seen a small decrease in residual standard error and a slight increase in the adjusted r-squared value. Next, we'll rerun removing freethrows (FT):
+
+```{r}
+model3 <- update(model2, .~. -FT)
+summary(model3)
+```
+
+We are still seeing improvements to the model, so we'll continue with eliminations: 
+
+```{r}
+model4 <- update(model3, .~. -`2P`)
+summary(model4)
+```
+
+```{r}
+model5 <- update(model4, .~. -`2P%`)
+summary(model5)
+```
+
+
+```{r}
+model6 <- update(model5, .~. -PER)
+summary(model6)
+```
+
+We've now come to the point where we will remove Age, which I had originally thought would be a helpful indicator to the model: 
+
+```{r}
+model7 <- update(model6, .~. -Age)
+summary(model7)
+```
+
+```{r}
+model8 <- update(model7, .~. -FTr)
+summary(model8)
+```
+
+In this last run, our adjusted r-squared didn't decrease, but our residual standard error went down. Let's keep going with our eliminations: 
+
+```{r}
+model9 <- update(model8, .~. -`eFG%`)
+summary(model9)
+```
+
+```{r}
+model10 <- update(model9, .~. -`FT%`)
+summary(model10)
+```
+
+The above model run, is the best model we'll be able to eek out without any type of data transformations. If we remove the next highest p-value factor `TS%`, the model returns a higher residual error as well as a lower adjusted r-squared value: 
+
+```{r}
+model11 <- update(model10, .~. -`TS%`)
+summary(model11)
+```
+
+While our final model still isn't amazing, it is about twice as good as our initial model - and we still haven't performed any transformations to the dataset. I think there is still some room for improvement here, which we'll explore next week.  
+
+You can actually run this analysis automatically using the `stepAIC` function from the `MASS` library as shown below, with very similar results. Having done it once by hand, i'll probably save some time next time by using this function. 
+
+```{r}
+library(MASS)
+
+fit <- lm(salary_2017_in_millions ~ ., data = nba_data_for_model)
+step <- MASS::stepAIC(fit, direction = 'both')
+step$anova
+```
+
+```{r}
+final_model <- lm(salary_2017_in_millions ~ Pos + Tm + G + MP + FG + FGA + `FG%` + `2PA` + FTA + AST, data = nba_data_for_model)
+summary(final_model)
+```
+
+Now that we have a better model, let's do some analysis of the residuals:
+
+```{r}
+layout(matrix(c(1,2,3,4),2,2)) # optional 4 graphs/page
+plot(model10)
+```
+
+Let's start by analyzing the Residuals vs Fitted plot on the top-left first. This plot shows us if our residuals have any non-linear patterns. Looking at the plot, we can see that the red line is not perfectly straight and that it does almost seem to have a very gentle sigmoid curve. As the curves are fairly faint, I think its safe to say here that it is approriate to categorize the relationships between our predictor variables and our outcome variable as linear. 
+
+Moving to the Normal Q-Q plot on the bottom-left, this plot shows us if our residuals are normally distributed. Looking at our plot, for the most part, our residuals follow the diagonal line, however we do see some deviation in the top right of the chart, although it is not a severe deviation. 
+
+Turning our attention now to the Scale-Location plot on the top-right, this plot helps us to check the assumption of equal variance (homoscedasticity). If the residuals had equal variance we would see a horizontal line with equally spread points. However, in our plot you can see that those points from 0-5 have a smaller variance than the rest of the plot. What we are seeing is referred to as heteroscedasticity. There isn't a tremendous amount of difference in the variation but there definitely is some. This plot is probably right on the edge of what we would deem as acceptable, but as the heteroscedasticity is fairly faint, I'll consider this assumption as met. 
+
+Lastly, let's look at the Residuals vs Leverage plot on the bottom-right. This plot helps us to determine if we have influential outliers in our data that are pulling the regression line in one direction or another. In this plot, we aren't looking for patterns, we are really looking for outlying values in the upper-right or lower-right corner. Those spots are places where cases can be heavily influential to the least-squares line. What we are looking for is points that fall outside of the red-dashed line, which is Cook's distance. Points outside of that line tell us that the points would be influential to the regression results. In the case of our plot, we can't even see the Cook's distance lines because all the cases are well inside of the lines, so we can have some comfort that our outliers, if any, are not having a large effect on the model. 
+All in all, we've built a semi-proficient multi-factor linear regression model that could definitely be directional in its predictions. Our next step in the coming week will be to see if we can improve our model with some data transformations (log transformation, including a quadratic term, etc.).
+
+# Sources
+
+[Residual Diagnostic Plot Analysis](https://data.library.virginia.edu/diagnostic-plots/)
