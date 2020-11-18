@@ -1,0 +1,200 @@
+---
+title: "Univariate and Multivariate Calculus"
+author: "Christian Thieme"
+date: "11/16/2020"
+output:
+  prettydoc::html_pretty:
+    theme: tactile
+    highlight: github
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+### 1. Use integration by substitution to solve the integral below: 
+
+$\int { 4{ e }^{ -7x }dx }$
+
+We'll do this substitution with `sympy`, which is a python package. To use python, we'll need to load the `reticulate` package: 
+
+```{r message=FALSE, warning=FALSE}
+library(reticulate)
+use_python("C:/Users/chris/anaconda3/", required = TRUE)
+```
+
+Now that we have `reticulate` loaded, we can use `sympy` to solve this integral: 
+
+```{python}
+from sympy import Symbol, exp, integrate
+
+x = Symbol('x')
+expr = 4 * exp(-7*x)
+integrate(expr, x)
+
+```
+
+The output in R isn't as clean as when it comes from python. The python output looks like this: 
+
+![](C:/Users/chris/OneDrive/Master Of Data Science - CUNY/Fall 2020/DATA605-Computational Mathematics/Week 13 - Univariate and Multivariate Calculus/sympy_exp.jpg)
+
+### 2. Biologists are treating a pond contaminated with bacteria. The level of contamination is changing at a rate of $\frac { dN }{ dt } =-\frac { 3150 }{ { t }^{ 4 } } -220$ bacteria per cubic centimeter per day, where $t$ is the number of days since treatment began. Find a function $N(t)$ to estimate the level of contamination if the level after 1 day was 6530 bacteria per cubic centimeter.
+
+
+```{python}
+t = Symbol('t')
+expr = -3150 * (t ** -4) -220
+integrate(expr, t)
+```
+
+We'll take the above function and add '+ C' to it so that we can calculate the contamination after 1 day: 
+
+$N(t)=\frac { 1050 }{ { t }^{ 3 } } -220t+c$
+
+Now to solve, we'll make some substitutions with the infomration we know: $t$ = 1 and $N(t)$ = 6530:
+
+$6530=\frac { 1050 }{ { 1 }^{ 3 } } -220(1)+c$
+
+Now, simplifying: 
+
+$6530=830+c$
+
+$c=5700$
+
+So the final equation is: 
+
+$N(t)=\frac { 1050 }{ { t }^{ 3 } } -220t +5700$
+
+### 3. Find the total area of the red rectangles in the figure below, where the equation of the line is: $f(x)=2x-9$
+
+![](C:/Users/chris/OneDrive/Master Of Data Science - CUNY/Fall 2020/DATA605-Computational Mathematics/Week 13 - Univariate and Multivariate Calculus/chart.jpg)
+
+Looking at the chart above, the bars begin where $x$ = 4.5 and end where $x$ = 8.5. We can integrate the function at these points to find the area: 
+
+```{python}
+x = Symbol('x')
+expr = 2 * x - 9
+integrate(expr, (x, 4.5, 8.5))
+```
+
+The area of the red rectangles is 16.0.
+
+### 4. Find the area of the region bounded by the graphs of the given equations: 
+
+* $y={ x }^{ 2 }-2x-2$
+* $y={ x+2 }$
+
+The first thing we can do is set these equations equal to each other and solve to find the intersecting points. We'll use the `solve` function from `sympy` to solve this equation. 
+
+```{python}
+from sympy import solve
+
+x = Symbol('x')
+solve([(x**2) - (2*x) -2 - x - 2], x)
+```
+
+To find the area bounded by the the given equations, we can integrate the functions at the two points we found:
+
+```{python}
+x = Symbol('x')
+expr = (x**2) - (2*x) -2 - x - 2
+integrate(expr, (x, 4, -1))
+```
+
+The area under the curve is equivalent to 125/6 or:
+
+```{r}
+125/6
+```
+
+### 5. A beauty supply store expects to sell 110 flat irons during the next year. It costs $3.75 to store one flat iron for one year. There is a fixed cost of $8.25 for each order. Find the lot size and the number of orders per year that will minimize inventory costs.
+
+To answer this question, we'll need to find cost (C). We can find C with the following function. When looking at the storage cost per year (3.75 * x/2), we assume that half of the yearly inventory is kept on hand. 
+
+$C=3.75(\frac { X }{ 2 } )+8.25(\frac { 110 }{ x } )$
+
+Simplifying we get: 
+
+$C=1.875x+\frac { 907.50 }{ x }$
+
+Now, to find the minimum of the cost curve, we'll take the derivative of the above function and then solve where the derivative is equal to 0. First, we'll use `sympy` to find the derivative using the `diff` function. 
+
+```{python}
+from sympy import diff
+
+x = Symbol('x')
+diff(1.875*x+907.5/x)
+```
+
+The derivative is:
+
+$f'(x)=1.875-\frac { 907.50 }{ { x }^{ 2 } }$
+
+Now, we'll set this equal to zero and solve: 
+
+```{python}
+from sympy import solve
+
+x = Symbol('x')
+solve(1.875-907.5/x**2, x)[1]
+```
+
+Here we find that cost will be minimized if we order 22 flat irons each time. If we order 110 flat irons throughout the year, that means we should make...
+
+```{r}
+110/22
+```
+
+We should make 5 orders of 22 flat irons each throughout the year. 
+
+### 6. Use integration by parts to solve the integral below: 
+
+$\int { ln(9x)\cdot { x }^{ 6 } }$
+
+```{python}
+from sympy import ln
+
+x = Symbol('x')
+expr = ln(9*x) * x **(6)
+integrate(expr, x)
+```
+
+${ x }^{ 7 }\frac { ln(9x) }{ 7 } -\frac { { x }^{ 7 } }{ 49 }$
+
+
+### 7. Determine whether $f(x)$ is a probability density function on the interval [1,${ e }^{ 6 }$]. If not, determine the value of the definite integral.
+
+$f(x)=\frac { 1 }{ 6x }$
+
+```{python}
+x = Symbol('x')
+expr = 1/(6*x)
+integrate(expr, (x, 1, exp(6)))
+```
+
+Probability density functions satisfy the following conditions: 
+
+1. $f(x)\ge 0$ for all $x$
+
+2. $\int _{ -\infty  }^{ \infty  }{ f(x)dx=1 }$
+
+In this case, since our interval is 1 to ${ e }^{ 6 }$, we know that all x values will be greater than 0, which meets the first criteria. Additionally as we saw in integrating our function we got the value of 1, which meets the second criteria. In meeting these conditions we can say that $f(x)$ is a probability distribution function on the interval [1,${ e }^{ 6 }$].
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
