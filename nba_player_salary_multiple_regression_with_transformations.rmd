@@ -1,0 +1,170 @@
+---
+title: "Episode III - NBA Player Salary with Multiple Regression Using Transformations"
+author: "Christian Thieme"
+date: "11/7/2020"
+output:
+  prettydoc::html_pretty:
+    theme: architect
+    highlight: github
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# **Can We Predict an NBA Player's Salary Using His Statistics from the Prior Year?**
+
+![](C:/Users/chris/OneDrive/Master Of Data Science - CUNY/Fall 2020/DATA605-Computational Mathematics/Week 13 - Univariate and Multivariate Calculus/Discussion/kyrie.jpg)
+
+### Discussion Prompt: 
+> _**Using R, build a multiple regression model for data that interests you. Include in this model at least one quadratic term, one dichotomous term, and one dichotomous vs. quantitative interaction term. Interpret all coefficients. Conduct residual analysis. Was the linear model appropriate? Why or why not?**_
+
+In the previous week's discussion we used a multiple regression model to try to predict NBA players' salaries without making any transformations to the data. That analysis and discussion can be reviewed [here](https://rpubs.com/christianthieme/690766). As a refresher, our overall goal is to run a regression model to see if we can predict a player's salary for the coming year. For this analysis, we will use multiple factors in our model and perform multi-factor linear regression. In addition, we'll also utilize at least one quadratic term, one dichotomous term, and one dichotomous vs. quantitative interaction term.
+
+We'll use the same two datasets that we used previously. One data set includes player statistics and the other dataset will include information about the salary of the players from 2017 to 2018. We'll join these two datasets together to perform our analysis. The player statistics dataset can be downloaded [here](https://www.kaggle.com/drgilermo/nba-players-stats?select=Seasons_Stats.csv) and the NBA Salary dataset can be downloaded [here](https://www.kaggle.com/koki25ando/salary).
+
+In an effort to be concise, I won't show the data cleaning that went into this dataset to get it ready for analysis. If you'd like to review those steps or learn more about what variables are included in the dataset, please see the previous [discussion](https://rpubs.com/christianthieme/690766). We'll begin this discussion right where we left off. 
+
+```{r message=FALSE, warning=FALSE, include = FALSE}
+library(tidyverse)
+```
+
+```{r message=FALSE, warning=FALSE, include = FALSE}
+nba_stats <- readr::read_csv('C:/Users/chris/OneDrive/Master Of Data Science - CUNY/Fall 2020/DATA605-Computational Mathematics/Week 11 - Linear Regression Using R/Discussion/Seasons_Stats.csv')
+
+nba_salary <- readr::read_csv('C:/Users/chris/OneDrive/Master Of Data Science - CUNY/Fall 2020/DATA605-Computational Mathematics/Week 11 - Linear Regression Using R/Discussion/NBA_season1718_salary.csv')
+```
+
+
+```{r  include = FALSE}
+nba_stats_2016_raw <- nba_stats %>% 
+  dplyr::filter(`Year` == 2016) %>%
+  dplyr::select(-`X1`, -`USG%`, -`OWS`, -`DWS`, -`WS`, -`WS/48`, -`blanl`, -`blank2`, -`OBPM`, -`DBPM`, -`VORP`, -`PF`)
+
+#removing duplicates
+nba_stats_2016 <- nba_stats_2016_raw[!duplicated(nba_stats_2016_raw$Player), ]
+
+dupes <- nba_stats_2016_raw %>%
+   dplyr::filter(`Tm` == 'TOT')
+  
+nba_stats_2016 <- bind_rows(nba_stats_2016, dupes)
+#nrow(nba_stats_2016)
+
+```
+
+```{r  include = FALSE}
+nba_salary_2017 <- nba_salary %>%
+  dplyr::select(`Player`, `season17_18`) %>%
+  dplyr::group_by(`Player`) %>% 
+  dplyr::summarize(salary_2017_in_millions = sum(`season17_18`)/1000000)
+
+```
+
+```{r include = FALSE}
+nba_data <- nba_stats_2016 %>% 
+  dplyr::left_join(nba_salary_2017, by = "Player") %>%
+  dplyr::arrange(PTS)
+
+```
+
+
+```{r include = FALSE}
+nba_data <- nba_data %>%
+  dplyr::select(-`GS`, -`3PAr`, -`ORB%`, -`DRB%`, -`TRB%`, -`AST%`, -`STL%`, -`BLK%`, -`TOV%`, -`BPM`, -`3P`, -`3PA`, -`3P%`, -`ORB`, -`DRB`, -`STL`, -`BLK`, -`TOV`)
+
+```
+
+```{r include = FALSE}
+nba_data <- nba_data %>%
+  dplyr::filter(!is.na(salary_2017_in_millions)) %>%
+  dplyr::filter(PTS > 25) %>% 
+  dplyr::mutate(Pos = ifelse(Pos == 'PF-C', 'PF', Pos)) %>%
+  dplyr::mutate(golden_years = ifelse(Age >= 27 & Age <= 31, 1,0))
+
+nba_data  
+```
+
+In Part I of this analysis, you'll remember we built a model using a single factor. The output from that model is below: 
+
+![](C:/Users/chris/OneDrive/Master Of Data Science - CUNY/Fall 2020/DATA605-Computational Mathematics/prior_model.jpg)
+
+In reviewing the results, you can see we had a standard error of $6.283M dollars and an adjusted R-squared value of 0.3718. In Part II of our analysis, we extended this to be a multiple regression model and used backward elimination to find the optimal variables for the model. We'll re-run that model here to serve as a baseline. 
+
+```{r}
+nba_data_for_model <- nba_data %>%
+  dplyr::select(-`Year`, -`Player`, -`PTS`)
+
+final_model <- lm(salary_2017_in_millions ~ Pos + Tm + G + MP + FG + FGA + `FG%` + `2PA` + FTA + AST, data = nba_data_for_model)
+summary(final_model)
+```
+
+The current model is definitely directional and explains ~62% of the variation in the dependent variable. However, let's see if we can identify some transformations that would be helpful to this model. 
+
+First, lets visualize the relationship between the remaining variables in the current model and our dependent variable:
+
+```{r include = FALSE}
+nba_data_new_model <- nba_data_for_model %>%
+  select(Age, Pos, Tm, G, MP, FG, FGA, `FG%`, `2PA`, FTA, AST, salary_2017_in_millions) %>%
+  rename(salary=salary_2017_in_millions)
+
+nba_data_new_model
+```
+
+```{r fig.height=8, fig.width=12, message=FALSE, warning=FALSE}
+library(psych)
+psych::pairs.panels(nba_data_new_model %>% select(-Age, -Pos, -Tm),
+             method = "pearson", # correlation method
+             hist.col = "#00AFBB",
+             density = TRUE,  # show density plots
+             ellipses = TRUE 
+)
+```
+
+Looking at the relationship between our independent variables and our dependent variables it looks like the majority of our relationships are fairly linear. There's nothing that stands out here saying that it would benefit from a quadratic transformation. Also, looking at the residuals from our model (see previous discussion), the residuals don't indicate anything either, if anything the residual plot indicates that perhaps a natural log transformation would be helpful on the dependent variable (salary). One way we can approach this is to use `powerTranform` from the `car` library. `powerTransform` can identify what, if any, transformations need to be made to a column. In working through each of the columns with this function, it appears that games played (G), comes the closes to benefitting from a quadratic transformation:  
+
+
+```{r message=FALSE, warning=FALSE}
+library(car)
+
+car::powerTransform(nba_data_new_model$G)
+```
+
+Here we see the estimated value that we should raise the column to is 2.387038 -- very close to 2. We'll round down and perform a quadratic transformation on this column by raising to the ^2 power. Additionally, we'll use the column 'golden_years' as our dichotomous variable. This column is a true, false (1,0) column that indicates whether the player is in their *golden years* or not. Golden years have been defined as the player being between 27 and 31 years old. For our dichotomous vs. quantitative interaction terms, we'll use 'golden_years' and our quadratically transformed G (games played) column. Let's re-run the model with these adjustments:
+
+```{r}
+nba_data_for_model <- nba_data %>%
+  dplyr::select(-`Year`, -`Player`, -`PTS`)
+
+final_model <- lm(salary_2017_in_millions ~ Pos + Tm + I(G^2) + MP + golden_years + golden_years:I(G^2) + FG + FGA + `FG%` + `2PA` + FTA + AST, data = nba_data_for_model)
+summary(final_model)
+```
+
+Here, we see a slight increase in our Adjusted R-Squared value as well as a decrease in our residual standard error - so the transformations did help, but only minimally. The first 4 coefficients in the model output come from the Position column, a categorical variable, which is why we see each value within the column with its own row in the output. We can see that, while being a power forward (PF) is not significant, the column as a whole is significant to the model. The same is true for the Tm (team) column, which is also a categorical variable. In fact, all the variables in the model are significant except the column interaction variable we added (golden years vs Games Played), the golden years variable, and field goal percentage (FG%).
+
+Now, let's look at the residuals from our model: 
+
+```{r fig.height=6, fig.width=10}
+layout(matrix(c(1,2,3,4),2,2)) # optional 4 graphs/page
+plot(final_model)
+```
+
+Let's start by analyzing the Residuals vs Fitted plot on the top-left first. This plot shows us if our residuals have any non-linear patterns. Looking at the plot, we can see that the red line is not perfectly straight and that it does almost seem to have a very gentle sigmoid curve. As the curves are fairly faint, I think it's safe to say here that it is appropriate to categorize the relationships between our predictor variables and our outcome variable as linear. 
+
+Moving to the Normal Q-Q plot on the bottom-left, this plot shows us if our residuals are normally distributed. Looking at our plot, for the most part, our residuals follow the diagonal line, however we do see some deviation in the top right of the chart, although it is not a severe deviation. 
+
+Turning our attention now to the Scale-Location plot on the top-right, this plot helps us to check the assumption of equal variance (homoscedasticity). If the residuals had equal variance we would see a horizontal line with equally spread points. However, in our plot you can see that those points from 0-10 have a smaller variance than the rest of the plot. What we are seeing is referred to as heteroscedasticity. There isn't a tremendous amount of difference in the variation but there definitely is some. This plot is probably right on the edge of what we would deem as acceptable, but as the heteroscedasticity is not overwhelming, I'll consider this assumption as met. 
+
+Lastly, let's look at the Residuals vs Leverage plot on the bottom-right. This plot helps us to determine if we have influential outliers in our data that are pulling the regression line in one direction or another. In this plot, we aren't looking for patterns, we are really looking for outlying values in the upper-right or lower-right corner. Those spots are places where cases can be heavily influential to the least-squares line. What we are looking for is points that fall outside of the red-dashed line, which is Cook's distance. Points outside of that line tell us that the points would be influential to the regression results. In the case of our plot, we can't even see the Cook's distance lines because all the cases are well inside of the lines, so we can have some comfort that our outliers, if any, are not having a large effect on the model.
+
+
+All in all, we've built a semi-proficient multiple regression model that could definitely be directional in its predictions. Based on the residual analysis above, we could continue to cautiously use this linear model if we wanted. While we may be able to squeeze out a little more accuracy from the model with some more transformations, I'd expect them to be minimal. Next steps for this analysis to improve the accuracy would most likely involve gathering additional data such as 3-point field goals, 3-point percentage, etc. as well as looking at using a different modeling method such as XGBOOST or Random Forest regression. 
+
+# Sources
+
+* [Peak NBA Player Age](https://hoopshype.com/2018/12/31/nba-aging-curve-father-time-prime-lebron-james-decline/)
+
+* [Residual Diagnostic Plot Analysis](https://data.library.virginia.edu/diagnostic-plots/)
+
+* [Data Transformations and How to Identify Them](https://online.stat.psu.edu/stat501/book/export/html/956)
+
