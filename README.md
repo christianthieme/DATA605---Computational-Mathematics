@@ -38,9 +38,9 @@ Discussion Post: **NBA Player Salary Analysis with Regression**: https://rpubs.c
 ### Week 12: Multiple Linear Regression Using R
 Rpubs link to .rmd: https://rpubs.com/christianthieme/690335
 
-Discussion Post: **Part II - NBA Player Salary Analysis with Multiple Regression**: https://rpubs.com/christianthieme/690766
+Discussion Post: *Part II - NBA Player Salary Analysis with Multiple Regression*: https://rpubs.com/christianthieme/690766
 
 ### Week 13: Univariate and Multivariate Calculus
 Rpubs linke to .rmd: https://rpubs.com/christianthieme/692532
 
-Discussion Post: **Episode III - NBA Player Salary with Multiple Regression Using Transformations**: https://rpubs.com/christianthieme/693535
+Discussion Post: *Episode III - NBA Player Salary with Multiple Regression Using Transformations*: https://rpubs.com/christianthieme/693535
