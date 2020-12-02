@@ -31,16 +31,19 @@ RPubs link to .rmd: https://rpubs.com/christianthieme/680629
 RPubs link to .rmd: https://rpubs.com/christianthieme/683971
 
 ### Week 11: Simple Linear Regression Using R
-Rpubs link to .rmd: https://rpubs.com/christianthieme/687460
+RPubs link to .rmd: https://rpubs.com/christianthieme/687460
 
 Discussion Post: **NBA Player Salary Analysis with Regression**: https://rpubs.com/christianthieme/687844
 
 ### Week 12: Multiple Linear Regression Using R
-Rpubs link to .rmd: https://rpubs.com/christianthieme/690335
+RPubs link to .rmd: https://rpubs.com/christianthieme/690335
 
 Discussion Post: *Part II - NBA Player Salary Analysis with Multiple Regression*: https://rpubs.com/christianthieme/690766
 
 ### Week 13: Univariate and Multivariate Calculus
-Rpubs linke to .rmd: https://rpubs.com/christianthieme/692532
+RPubs link to .rmd: https://rpubs.com/christianthieme/692532
 
 Discussion Post: *Episode III - NBA Player Salary with Multiple Regression Using Transformations*: https://rpubs.com/christianthieme/693535
+
+### Week 14: Taylor Series Approximations
+RPubs link to .rmd: https://rpubs.com/christianthieme/698724
