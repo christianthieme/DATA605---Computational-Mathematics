@@ -1,0 +1,108 @@
+---
+title: "Taylor Series Approximations"
+author: "Christian Thieme"
+date: "11/30/2020"
+output:
+  prettydoc::html_pretty:
+    theme: HPSTR
+    highlight: github
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# **Perform the following Taylor Series Expansions:** 
+
+## 1. $f(x)=\frac { 1 }{ (1-x) }$
+
+$\frac { 1 }{ (1-x) }$ is equivalent to ${ 1\cdot (1-x) }^{ -1 }$ 
+
+Taking the first derivative we get: ${ -(1-x) }^{ -2 }\cdot (-1)=\frac { 1 }{ { (1-x) }^{ 2 } }$
+
+The second derivative is: ${ -2(1-x) }^{ -3 }\cdot (-1)=\frac { 2 }{ { (1-x) }^{ 3 } }$
+
+The third derivative is: ${ -3\cdot 2\cdot { (1-x) }^{ -4 } }\cdot (-1)=\frac { 6 }{ { (1-x) }^{ 4 } }$
+
+The fourth derivative is: ${ -4\cdot 3\cdot 2\cdot { (1-x) }^{ -5 } }\cdot (-1)=\frac { 24 }{ { (1-x) }^{ 5 } }$
+
+Now, evaluating the above derivatives at $x=0$, we get: 
+
+${ f(0)=\frac { 1 }{ 1-0 }  }=1=0!$
+
+${ f'(0)=\frac { 1 }{ { (1-0) }^{ 2 } }  }=1=1!$
+
+${ f''(0)=\frac { 2 }{ { (1-0) }^{ 3 } }  }=2=2!$
+
+${ f'''(0)=\frac { 6 }{ { (1-0) }^{ 4 } }  }=6=3!$
+
+${ f''''(0)=\frac { 24 }{ { (1-0) }^{ 5 } }  }=24=4!$
+
+So:
+
+$1+\frac { 1 }{ 1! } x+\frac { 2 }{ 2! } { x }^{ 2 }+\frac { 6 }{ 3! } { x }^{ 3 }+\frac { 24 }{ 4! } { x }^{ 4 }+...$
+
+$=1+x+{ x }^{ 2 }+{ x }^{ 3 }+{ x }^{ 4 }...$
+
+$=\sum _{ n=0 }^{ \infty  }{ \frac { { f }^{ (n) }(0) }{ n! } (x{ ) }^{ n } }$
+
+Since the above is a geometric series, it converges when $|x|<1$
+
+## 2. $f(x)={ e }^{ x }$
+
+Since the derivative of ${ e }^{ x }$ is always just ${ e }^{ x }$, our first through fourth derivatives will all result in ${ e }^{ x }$.
+
+Again, since all the derivatives are the same, we'll solve for where $x=0$ and the result will be the same for all four derivatives: 
+
+$f(0)={ e }^{ 0 }=1$
+
+Which leads us to: 
+
+${ e }^{ x }=\sum _{ n=0 }^{ \infty  }{ \frac { { f }^{ (n) }(0) }{ n! } (x{ ) }^{ n } }$
+
+$=1+\frac { 1 }{ 1! } x+\frac { 1 }{ 2! } { x }^{ 2 }+\frac { 1 }{ 3! } { x }^{ 3 }+\frac { 1 }{ 4! } { x }^{ 4 }+...$
+
+$=\sum _{ n=0 }^{ \infty  }{ \frac { { x }^{ n } }{ n! }  }$
+
+
+### 3. $f(x)=ln(1+x)$
+
+We know that the derivative of $ln$ is $\frac { 1 }{ x }$. So, taking the first derivative, we get: 
+
+${ (1+x) }^{ -1 }$
+
+The second derivative would be: 
+
+${ -1\cdot (1+x) }^{ -2 }$
+
+The third derivative would be: 
+
+${ 2\cdot (1+x) }^{ -3 }$
+
+Finally, the fourth derivative would be: 
+
+${ -3\cdot 2\cdot (1+x) }^{ -4 }$
+
+Next, we'll evaluate each of the above derivatives at $x=0$: 
+
+$f(0)=ln(1+0)=ln(1)=0$
+
+$f'(0)=(1+0{ ) }^{ -1 }=1$
+
+$f''(0)=-1\cdot (1+0{ ) }^{ -2 }=-1$
+
+$f'''(0)=2\cdot (1+0{ ) }^{ -3 }=2$
+
+$f''''(0)=-3\cdot 2\cdot (1+0{ ) }^{ -4 }=-6$
+
+This leads us to: 
+
+$ln(1+x)=\sum _{ n=0 }^{ \infty  }{ \frac { { f }^{ (n) }(0) }{ n! } (x{ ) }^{ n } }$
+
+$=0+\sum _{ n=1 }^{ \infty  }{ \frac { { (-1) }^{ (n+1) }(n-1)! }{ n! } (x{ ) }^{ n } }$
+
+$=\sum _{ n=1 }^{ \infty  }{ \frac { { (-1) }^{ (n+1) }({ x }^{ n }) }{ n }  }$
+
+
+
+
