@@ -47,3 +47,6 @@ Discussion Post: *Episode III - NBA Player Salary with Multiple Regression Using
 
 ### Week 14: Taylor Series Approximations
 RPubs link to .rmd: https://rpubs.com/christianthieme/698724
+
+### Week 15: Multivariable Functions
+RPubs link to .rmd: https://rpubs.com/christianthieme/700527
