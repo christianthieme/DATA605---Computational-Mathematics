@@ -50,3 +50,9 @@ RPubs link to .rmd: https://rpubs.com/christianthieme/698724
 
 ### Week 15: Multivariable Functions
 RPubs link to .rmd: https://rpubs.com/christianthieme/700527
+
+### Final Exam: 
+RPubs link to .rmd: https://rpubs.com/christianthieme/706153
+
+### Final Project: Predicting House Prices: Regression Techniques
+RPubs link to .rmd: https://rpubs.com/christianthieme/706151
