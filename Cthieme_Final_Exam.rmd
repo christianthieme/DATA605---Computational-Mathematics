@@ -1,0 +1,538 @@
+---
+title: "Final Exam - Computational Mathematics"
+author: "Christian Thieme"
+date: "11/23/2020"
+output:
+  prettydoc::html_pretty:
+    theme: leonids
+    highlight: github
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(kableExtra)
+library(psych)
+library(scales)
+library(corrplot)
+library(matrixcalc)
+library(MASS)
+library(ggpubr)
+```
+
+
+## Problem 1
+
+**Using R, generate a random variable X that has 10,000 random uniform numbers from 1 to N, where N can be any number of your choosing greater than or equal to 6.  Then generate a random variable Y that has 10,000 random normal numbers with a mean of $\mu =\sigma =(N+1)/2$.**
+
+```{r}
+set.seed(123)
+
+N <- 100
+X <- runif(10000, min = 1, max = N)
+Y <- rnorm(10000, mean = (N+1)/2, sd = (N+1)/2)
+```
+
+```{r}
+hist(X)
+```
+
+```{r}
+hist(Y)
+```
+
+**_Probability._ Calculate as a minimum the below probabilities a through c.  Assume the small letter "x" is estimated as the median of the X variable, and the small letter "y" is estimated as the 1st quartile of the Y variable.  Interpret the meaning of all probabilities.**
+
+```{r}
+small_x <- median(X)
+small_y <- quantile(Y, 0.25, names = FALSE)
+
+```
+
+The median of $X$ is `r small_x`. The 1st quartile of $Y$ is `r small_y`. 
+
+**a. $P(X>x|X>y)$**
+
+This is a conditional probability. Here we are saying "given that $X$ is greater than $y$, what is the probability that $X$ is greater than $x$. The general formula for solving this problem is called Bayes' Theorem and is given as: 
+
+$P(A|B)=\frac { P(B|A)\cdot P(A) }{ P(B) }$
+
+```{r}
+a <- X[X>small_x]
+
+prob_b_given_a <- length(a[a>small_y])/length(a)
+
+prob_a <- sum(X>small_x)/length(X)
+prob_b <- sum(X>small_y)/length(X)
+
+(prob_b_given_a * prob_a) / prob_b
+
+
+```
+
+**b. $P(X>x,Y>y)$**
+
+Here we are looking at the probability that $X$ is greater than $x$ *AND* that $Y$ is greater than $y$. To solve this problem, we'll use the multiplication rule for *independent* events (since we randomly generated these distributions): 
+
+$P(A  and B) =P(A)\cdot P(B)$
+
+Because we built these distributions, we already know that the probability that $X>x$ is 0.5 since we are using the median value. Similarly, we know that the probability that $Y>y$ is equal to 0.75 since we used the first percentile. We can multiply both of these values together to get our answer. 
+
+```{r}
+X_greater_than_x <- 0.5
+Y_greater_than_y <- 0.75
+
+probability <- X_greater_than_x * Y_greater_than_y
+probability
+```
+
+**c. $P(X<x|X>y)$**
+
+This is very similar to (a). Here we are looking at the conditional probability that $X$ is less than $x$, given that $X$ is greater than $y$. We'll use Bayes' theorem again to answer this question. 
+
+```{r}
+a <- X[X<small_x]
+
+prob_b_given_a <- length(a[a>small_y])/length(a)
+
+prob_a <- sum(X<small_x)/length(X)
+prob_b <- sum(X>small_y)/length(X)
+
+(prob_b_given_a * prob_a) / prob_b
+
+```
+
+**Investigate whether $P(X>x\cup Y>y)=P(X>x)P(Y>y)$ by building a table and evaluating the marginal and joint probabilities.**
+
+Marginal probability is the probability of an event occuring - it is an unconditional probability. Joint probability is the probability of event A and event B occuring.
+
+```{r}
+df <- data.frame(X = X, Y = Y)
+
+df1 <- df %>%
+  filter(X > small_x & Y > small_y) %>%
+  nrow() / dim(df)[1]
+
+
+df2 <- df %>%
+  filter(X < small_x & Y > small_y) %>%
+  nrow() / dim(df)[1]
+
+df3 <- rbind(df2, df1) 
+
+df4 <- rbind(df3,sum(df3))
+
+df5 <- df %>%
+  filter(X < small_x & Y < small_y) %>%
+  nrow() / dim(df)[1]
+
+df6 <- df %>%
+  filter(X > small_x & Y < small_y) %>%
+  nrow() / dim(df)[1]
+
+df7 <- rbind(df5,df6)
+df8 <- sum(df7)
+
+df9 <- rbind(df7, df8)
+
+
+df10 <- cbind(df9, df4)
+
+
+df11 <- df10[,1] + df10[,2]
+
+df12 <- cbind(df10, df11)
+
+rownames(df12) <- c('X < x', 'X > x', 'Total')
+colnames(df12) <- c('Y < y', 'Y > y', 'Total')
+
+df12 %>% kable() %>%
+  kable_styling()
+
+```
+
+In looking at the marginal probabilities in the totals, we can tell that this table is accurate since we used the median value of X, which would be 0.5 and we used the first quartile of Y to get y, which would give us 0.25 and 0.75 as we see in the table. The joint probabilities also sum to the marginal probabilities, which is what we would expect. 
+
+**Check to see if independence holds by using Fisher’s Exact Test and the Chi Square Test.  What is the difference between the two? Which is most appropriate?**
+
+Fisher's Exact Test of Independence is used to examine the association (contingency - which is why we use contingency tables) betwen two classifications. In essence, we want to know whether the two classifications are associated (dependent) or if they are independent. We use Fisher's exact test when doing experiments with small numbers of observations. One of the key criteria is: 
+
+* *more than 20% of cells have expected cell counts less than 5, and no expected cell count is  are less than 1.*
+
+Looking at our contingency table above, it looks like we don't *HAVE* to use the Fisher's Exact Test of Independence, but we can none-the-less, because the test still works for tests with higher observation sizes. The real problem is that chi-square test can not be used for experiments that have a small sample size because the distribution's approximations are inadequate when sample sizes are small. 
+
+Now let's turn to our experiment to see if there is a relationship between our two variables. Here our hypothesis will be the same for both the Fisher's Exact test and the Chi Square Test: 
+
+* ${ H }_{ 0 }:$ The variables are independent and there is no relationship between the two variables
+* ${ H }_{ 1 }:$ The variables are dependent and there is a relationship between the two variables 
+
+```{r}
+#------------adjusting dataframe to work with Fisher's test --------
+df <- data.frame(X = X, Y = Y)
+
+df1 <- df %>%
+  filter(X > small_x & Y > small_y) %>%
+  nrow() 
+
+
+df2 <- df %>%
+  filter(X < small_x & Y > small_y) %>%
+  nrow()
+
+df3 <- rbind(df2, df1) 
+
+
+df5 <- df %>%
+  filter(X < small_x & Y < small_y) %>%
+  nrow() 
+
+df6 <- df %>%
+  filter(X > small_x & Y < small_y) %>%
+  nrow() 
+
+df7 <- rbind(df5,df6)
+
+
+df10 <- cbind(df7, df3)
+
+
+
+rownames(df10) <- c('X < x', 'X > x')
+colnames(df10) <- c('Y < y', 'Y > y')
+
+## ----------------------------------------------#
+#---------------  Fisher's Test  ----------------#
+
+fisher.test(df10)
+```
+
+In looking at the test results, we can see that our p-value is well above the generally accepted 0.05. In this case, we can fail to reject the null hypothesis and say with comfort that these two variables are independent. 
+
+Now, we'll run the same test, but using the chi-square test. 
+
+```{r}
+chisq.test(df10)
+```
+
+In looking at these results, you can see that we come back with the exact same p-value as we did with the Fisher's test. Here again we will fail to reject the null hypothesis and conclude that the variables are independent. 
+
+So why are the p-values the same? Well as was mentioned above, our observation size is 10,000, which is quite large, and we definitely have enough observations in each category in our contingency table for us to run a valid Chi-square test - so in this case, we really could run either test and we should get nearly identical results. We should use the Fisher's test if we have a small sample size, which isn't the case here, but it should be noted that it doesn't hurt to run the Fisher's test on experiments that don't have a small sample size. As we've proved, it provides just as accurate a result. 
+
+# Problem 2
+
+**You are to register for Kaggle.com (free) and compete in the House Prices: Advanced Regression Techniques competition: https://www.kaggle.com/c/house-prices-advanced-regression-techniques. I want you to do the following:**
+
+**_Descriptive and Inferential Statistics_. Provide univariate descriptive statistics and appropriate plots for the training data set.  Provide a scatterplot matrix for at least two of the independent variables and the dependent variable. Derive a correlation matrix for any three quantitative variables in the dataset.  Test the hypotheses that the correlations between each pairwise set of variables is 0 and provide an 80% confidence interval. Discuss the meaning of your analysis.  Would you be worried about familywise error? Why or why not?**
+
+```{r message=FALSE, warning=FALSE}
+train <- readr::read_csv('C:/Users/chris/OneDrive/Master Of Data Science - CUNY/Fall 2020/DATA605-Computational Mathematics/Final/train.csv')
+head(train) 
+```
+
+First, let's get a look at the dimensions of our dataset: 
+
+```{r}
+dim(train)
+```
+
+Our data has `r dim(train)[1]` rows and `r dim(train)[2]` columns.
+
+Next, we'll generate some summary statistics of each feature by using the `summary` function from base R. 
+
+```{r message=FALSE, warning=FALSE}
+summary(train)
+```
+
+We can see that there is a tremendous wealth of information in this summary. Some interesting pieces in about the dataset in general are that we are looking at houses built between 1872 and 2010 and our dependent variable, Sales Price, goes from 34,900 to 775,000.
+
+Let's also take a look at the distribution of our dependent variable, sale price: 
+
+```{r}
+ggplot(train) + 
+  aes(x = SalePrice) + 
+  geom_histogram(bins =45 ) +
+ scale_x_continuous(labels=comma) +
+  labs(title="Home Sale Price Distribution",
+       x="Price") +
+  theme(plot.title = element_text(hjust = 0.425))
+```
+
+Now, we'll take a look at the relationship between several of our indpendent variables and our dependent variable, SalePrice. We'll select these variables using the hypothesis that above ground living area square feet (GrLivArea), total basement square feet (TotalBsmtSF), and garage area (GarageArea) will be highly predictive factors for the model. 
+
+```{r message=TRUE, warning=TRUE}
+ggplot(train) + 
+  aes(x = GrLivArea, y = SalePrice) + 
+  geom_point(alpha = 0.25) + scale_y_continuous(labels=comma) +
+  geom_smooth(method = lm ,se = FALSE) +
+  scale_x_continuous(labels=comma) +
+  labs(title="Home Sale Price vs. Above Ground Square Footage",
+       y="Home Price $",
+       x="Sq Ft") + 
+  theme_classic() +
+  theme(panel.grid.major.y = element_line(colour = "grey90",linetype='dashed'),
+        plot.title = element_text(hjust = 0.30))
+```
+
+We can see by looking at the plot above that the above ground square footage has a fairly strong linear relationship with the home sale price. 
+
+Now, let's look at the total square footage of the basement: 
+
+```{r message=FALSE, warning=FALSE}
+ggplot(train) + 
+  aes(x = TotalBsmtSF, y = SalePrice) + 
+  geom_point(alpha = 0.25) + scale_y_continuous(labels=comma) +
+  geom_smooth(method = lm ,se = FALSE) +
+  scale_x_continuous(labels=comma) +
+  labs(title="Home Sale Price vs. Total Basement Square Footage",
+       y="Home Price $",
+       x="Sq Ft") + 
+  theme_classic() +
+  theme(panel.grid.major.y = element_line(colour = "grey90",linetype='dashed'),
+        plot.title = element_text(hjust = 0.30))
+```
+
+The total basement square footage also has a linear relationship with the some sale price, although the relationship is not as strong as what we saw with the previous feature. 
+
+Lastly, we'll look at garage area: 
+
+```{r message=FALSE, warning=FALSE}
+ggplot(train) + 
+  aes(x = GarageArea, y = SalePrice) + 
+  geom_point(alpha = 0.25) + scale_y_continuous(labels=comma) +
+  geom_smooth(method = lm ,se = FALSE) +
+  scale_x_continuous(labels=comma) +
+  labs(title="Home Sale Price vs. Garage Square Footage",
+       y="Home Price $",
+       x="Sq Ft") + 
+  theme_classic() +
+  theme(panel.grid.major.y = element_line(colour = "grey90",linetype='dashed'),
+        plot.title = element_text(hjust = 0.30))
+```
+
+Again, here we can see that Garage Square footage has a linear relationship with the home price. This relationship looks to be moderately strong. 
+
+How strong are these relationships? Let's create a correlation matrix to determine the strength of each of these relationships: 
+
+```{r}
+df_cor <- train %>% dplyr::select(SalePrice, GarageArea, TotalBsmtSF, GrLivArea)
+cor(df_cor, use = "complete.obs")
+```
+
+While the correlation matrix is fairly small, it still often helps to represent this matrix visually:
+
+```{r}
+df_cor <- train %>% dplyr::select(SalePrice, GarageArea, TotalBsmtSF, GrLivArea)
+
+corrplot(cor(df_cor, use = "complete.obs"), type = "upper", order = "hclust", 
+         tl.col = "black", tl.srt = 45)
+```
+
+We can see that all three of the variables we have chosen are strongly correlated with sales price as we saw in our scatterplots above. We can also see that there may be some slight collinearity between these features as well. 
+
+Before moving on, let's test the following hypotheses for each of our features as it relates to sales price: 
+
+* ${ H }_{0  }:$ Correlation between the pairwise set of variables is 0 and is not significant
+* ${ H }_{1  }:$ Correlation between the pairwise set of variables in not 0 and is significant
+
+We'll use the `cor.test` method to compute this. In addition, this function has the ability to generate confidence intervals based on a specified input. We'll generate 80% confidence intervals that will display as part of the output. 
+
+Let's first look at the pairwise correlation between sales price and garage area: 
+
+```{r}
+cor.test(df_cor$SalePrice, df_cor$GarageArea, conf.level = 0.80)
+```
+
+We can see here that the p-value is extremely low, which means we will reject the null hypothesis and conclude that the correlation is not 0 and the relationship is significant. Additionally, you can see that 0 is not included in the 80% confidence interval. 
+
+Now, we'll turn our attention to sales price and above ground square footage (GrLivArea):
+
+```{r}
+cor.test(df_cor$SalePrice, df_cor$GrLivArea, conf.level = 0.80)
+```
+
+Here again, the p-value is extremely small which leads us to reject the null hypothesis and conclude that the correlation between these two variables is not 0 and the relationship is significant. Additionally, as we saw before, 0 is not part of the 80% confidence interval.
+
+Lastly, we'll look at sales price and total basement square footage (TotalBsmtSF)
+
+```{r}
+cor.test(df_cor$SalePrice, df_cor$TotalBsmtSF, conf.level = 0.80)
+```
+
+Following suit from our previous tests, the p-value is extremely small. We will reject the null hypothesis and conclude that the true correlation is not equal to 0. You can see in the 80% confidence interval that, once again, 0 is not included in the interval. 
+
+The following tests give us reasonable assurance that there is, in fact, a significant relationship between these variables and they will be significant factors in building our multiple regression model. 
+
+Now, because we've performed multiple statistical tests on the same dataset, it behooves us to check the family-wise error rate. We can do this using the following formula: 
+$1−(1−α)m$
+
+In the above forumla, alpha is our level of significance (threshold for rejecting the null hypothesis) and m is the number of tests we performed. We set alpha equal to 0.01 since that was the threshold we were using to determine significance in the above tests and set m = 3 as we ran 3 tests. 
+
+```{r}
+alpha <- 0.01
+m<-3
+
+1-(1-alpha)^m
+
+```
+
+We can see from the output above that our risk of running a family-wise error is very low (~3%). What does this mean? It means that our chance of committing a type I error, or rejecting the null hypothesis when it is acutally true, is very low. 
+
+**_Linear Algebra and Correlation_.  Invert your correlation matrix from above. (This is known as the precision matrix and contains variance inflation factors on the diagonal.) Multiply the correlation matrix by the precision matrix, and then multiply the precision matrix by the correlation matrix. Conduct LU decomposition on the matrix. **
+
+We'll take our correlation matrix from above: 
+
+```{r}
+cor_matrix <- cor(df_cor)
+cor_matrix
+```
+
+and use the `solve` method from R to get the inverse (which is also called the precision matrix): 
+
+```{r}
+inverse <- solve(cor_matrix)
+inverse
+```
+
+We can do a quick check to make sure we calculated the inverse correctly by multiplying the original matrix and the inverse together. If we did it correctly, the calculation should return the identity matrix (within rounding error):
+
+```{r}
+round(cor_matrix %*% inverse,0)
+```
+
+Additionally multiplying the inverse by the correlation matrix results in the identity matrix as well (within rounding error):
+
+```{r}
+round(inverse %*% cor_matrix,0)
+```
+
+Now, let's perform lower-upper matrix decomposition on the correlation matrix. Decomposing a matrix into its parts can often make final calculations more simple. We'll use the `lu.decomposition` method from the `matrixcalc` library to decompose this matrix into lower and upper triangle matrices. :
+
+```{r}
+decomp <- lu.decomposition(cor_matrix)
+decomp
+```
+
+Multiplying the lower triangle by the upper triangle should result in our original correlation matrix:
+
+```{r}
+decomp$L %*% decomp$U
+```
+
+Perfect!
+
+**_Calculus-Based Probability & Statistics_.  Many times, it makes sense to fit a closed form distribution to data.  Select a variable in the Kaggle.com training dataset that is skewed to the right, shift it so that the minimum value is absolutely above zero if necessary.  Then load the MASS package and run fitdistr to fit an exponential probability density function.  (See  https://stat.ethz.ch/R-manual/R-devel/library/MASS/html/fitdistr.html ).  Find the optimal value of $\lambda$  for this distribution, and then take 1000 samples from this exponential distribution using this value (e.g., rexp(1000, $\lambda$)).  Plot a histogram and compare it with a histogram of your original variable.   Using the exponential pdf, find the 5th and 95th percentiles using the cumulative distribution function (CDF). Also generate a 95% confidence interval from the empirical data, assuming normality.  Finally, provide the empirical 5th percentile and 95th percentile of the data.  Discuss.**
+
+First, we'll choose a feature from our data that is right skewed. The unfinished square feet of basement area (BsmtUnfSF) is right skewed as we can see in the histogram below: 
+
+```{r message=FALSE, warning=FALSE}
+right <- ggplot(train) + 
+  aes(x = BsmtUnfSF) + 
+  geom_histogram(aes(y=..density..),bins = 45)  +
+  geom_density(alpha=.1, color = "blue")+ 
+  labs(title="Unfinished Square Feet of Basement",
+       y="Density",
+       x="Sq Ft") + 
+  theme_classic() +
+  theme(panel.grid.major.y = element_line(colour = "grey90",linetype='dashed'),
+        plot.title = element_text(hjust = 0.30))
+
+right
+```
+
+Let's check the minimum value of our feature to make sure that it is zero: 
+
+```{r}
+min(train$BsmtUnfSF)
+```
+
+Now, let's use `fitdistr` from the `MASS` package to fit our feature to an exponential distribution. 
+
+```{r}
+exp_fit <- MASS::fitdistr(train$BsmtUnfSF, "exponential")
+exp_fit
+```
+
+Running the above function has given us a $\lambda$ value of `r exp_fit$estimate`. We'll now use this $\lambda$ or rate to generate 1,000 samples from this exponential distribution using the `rexp` function from the `stats` library. 
+
+```{r}
+samples <- rexp(1000, rate = exp_fit$estimate )
+```
+
+Armed with samples from our exponential distribution, lets build another histogram and compare it to the one we made previously: 
+
+```{r fig.width=8}
+expo <- ggplot(tibble(samples)) + 
+  aes(x = samples) + 
+  geom_histogram(aes(y=..density..),bins = 45)  +
+  geom_density(alpha=.1, color = "blue") + 
+  labs(title="Fit Exponential Distribution",
+       y="Density",
+       x="Sq Ft") + 
+  theme_classic() +
+  theme(panel.grid.major.y = element_line(colour = "grey90",linetype='dashed'),
+        plot.title = element_text(hjust = 0.30))
+
+ggpubr::ggarrange(expo, right, ncol = 1, nrow = 2)
+```
+
+By looking at the above two distributions, especially looking at the line from the density plot, we can tell our exponential transformation made a significant change in the shape of the distribution. In the top plot, which shows the transformation we made, we can clearly see an exponential curve, whereas in the bottom plot, it looks much more like a gentle decline. 
+
+Now, let's use the exponential probability density (PDF) to find the 5th and 95th percentiles using the cumulative distribution function (CDF). To do this we'll use the `qexp` method from `stats` library. 
+
+```{r}
+qexp(.05, rate = exp_fit$estimate)
+```
+
+```{r}
+qexp(.95, rate = exp_fit$estimate)
+```
+
+Next, we'll generate a 95% confidence interval from the original data, assuming normality. First let's find the length of the interval:
+
+```{r}
+center <- mean(train$BsmtUnfSF)
+stddev <- sd(train$BsmtUnfSF)
+n <- length(train$BsmtUnfSF)
+error <- qnorm(0.95)*stddev/sqrt(n)
+error
+```
+
+Now utilizing our center point (mean), we can build out our confidence interval: 
+
+```{r}
+lower_bound <- center - error
+
+upper_bound <- center + error
+
+lower_bound
+upper_bound
+```
+
+For our mean of `r center`, the lower bound of our confidence interval is `r lower_bound` and the upper bound is `r upper_bound`. 
+
+Similar to what we did above, we'll look at the 5th and 95th percentiles of the data: 
+
+```{r}
+quantile(train$BsmtUnfSF, 0.05)
+```
+
+```{r}
+quantile(train$BsmtUnfSF, 0.95)
+```
+
+
+**Modeling. Build some type of multiple regression  model and submit your model to the competition board. Provide your complete model summary and results with analysis.  Report your Kaggle.com user name and score.**
+
+My model and analysis can be found [here](https://rpubs.com/christianthieme/706151). My Kaggle username is **_christianthieme_** and my score from the [competition](https://www.kaggle.com/c/house-prices-advanced-regression-techniques/overview) is:
+
+![](C:/Users/chris/OneDrive/Master Of Data Science - CUNY/Fall 2020/DATA605-Computational Mathematics/kaggle score.jpg)
+
+
+# Sources
+
+* [Pearson Correlation Test](http://www.sthda.com/english/wiki/correlation-test-between-two-variables-in-r)
+* [Correlation Plots](http://www.sthda.com/english/wiki/correlation-matrix-a-quick-start-guide-to-analyze-format-and-visualize-a-correlation-matrix-using-r-software)
+* [cor.test](https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/cor.test)
+* [Family-wise Error Rate](https://www.statisticshowto.com/familywise-error-rate/)
+* [Calculating Confidence Intervals](https://www.programmingr.com/statistics/confidence-interval-in-r/)
+* [EDA and Modeling Inspiration](https://www.kaggle.com/erikbruin/house-prices-lasso-xgboost-and-a-detailed-eda)
